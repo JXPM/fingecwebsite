@@ -16,7 +16,7 @@ rm '.env'
 touch backend/.gitignore
 
 #fichier Maj et push
-git status
 git add .
-git commit -m "Maj"
+git status
+git commit -m "Maj & more"
 git push origin main
