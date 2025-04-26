@@ -59,6 +59,7 @@ const SheetContent = React.forwardRef<
 >(({ side = "right", className, children, ...props }, ref) => (
   <SheetPortal>
     <SheetOverlay />
+  
     <SheetPrimitive.Content
       ref={ref}
       className={cn(sheetVariants({ side }), className)}
@@ -123,7 +124,7 @@ const SheetDescription = React.forwardRef<
     className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
-))
+)) 
 SheetDescription.displayName = SheetPrimitive.Description.displayName
 
 export {

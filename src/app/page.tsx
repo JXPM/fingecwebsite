@@ -1,45 +1,145 @@
+"use client";
+
+import { motion, useAnimation } from "framer-motion";
+import { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ChevronRight, FileText, PieChart, Users, Briefcase, Clock, Award, ShieldCheck } from "lucide-react";
+import Image from "next/image";
 
 export default function Home() {
+  const controls = useAnimation();
+
+  useEffect(() => {
+    controls.start("visible");
+  }, [controls]);
+
   return (
     <>
-      {/* Section Héro */}
-      <section className="relative bg-gray-50 py-20 md:py-24">
-        <div className="container-custom">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
-                Votre <span className="text-primary">expert-comptable</span> vous accompagne
-              </h1>
-              <p className="text-lg text-gray-600 mt-4 md:text-xl">
-                FINGEC met son expertise au service de votre entreprise pour une gestion optimale de votre comptabilité et de votre développement.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button asChild size="lg">
-                  <Link href="/nous-contacter">
-                    Prendre rendez-vous
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg">
-                  <Link href="/notre-savoir-faire">
-                    Découvrir nos services <ChevronRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-            <div className="relative h-[400px] bg-slate-200 rounded-lg shadow-xl">
-              {/* Emplacement pour une image professionnelle */}
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                <span className="text-sm">Image du cabinet ou professionnels</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+ {/* Section Héro avec animation de texte */}
+  <section className="relative h-screen max-h-[800px] overflow-hidden">
+      {/* Image de fond */}
+      <div className="absolute inset-0">
+        <Image
+          src="/images/pagep.avif"
+          alt="Équipe FINGEC"
+          fill
+          className="object-cover"
+          priority
+          quality={90}
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-black/30"></div>
+      </div>
+
+      {/* Contenu animé */}
+      <div className="container-custom h-full flex flex-col justify-center relative z-10">
+        <motion.div
+          initial="hidden"
+          animate={controls}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.3,
+                delayChildren: 0.5
+              }
+            }
+          }}
+          className="max-w-3xl mx-auto text-center space-y-6 text-white"
+        >
+          <motion.h1 
+            variants={{
+              hidden: { opacity: 0, y: 40 },
+              visible: { 
+                opacity: 1, 
+                y: 0,
+                transition: { 
+                  duration: 1.2,
+                  ease: [0.6, -0.05, 0.01, 0.99]
+                }
+              }
+            }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight drop-shadow-md"
+          >
+            Votre <span className="text-primary-300">expert-comptable</span> vous accompagne
+          </motion.h1>
+
+          <motion.p
+            variants={{
+              hidden: { opacity: 0, y: 30 },
+              visible: { 
+                opacity: 1, 
+                y: 0,
+                transition: { 
+                  duration: 1,
+                  ease: "easeOut",
+                  delay: 0.4
+                }
+              }
+            }}
+            className="text-lg md:text-xl text-gray-100 drop-shadow-md"
+          >
+            FINGEC met son expertise au service de votre entreprise.
+          </motion.p>
+
+          <motion.div
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { 
+                opacity: 1,
+                transition: { 
+                  staggerChildren: 0.2,
+                  delay: 0.8
+                }
+              }
+            }}
+            className="flex flex-col sm:flex-row gap-4 pt-4 justify-center"
+          >
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, x: -30 },
+                visible: { 
+                  opacity: 1, 
+                  x: 0,
+                  transition: { 
+                    duration: 0.8,
+                    ease: "backOut"
+                  }
+                }
+              }}
+            >
+              <Button asChild size="lg" className="bg-primary hover:bg-primary-600">
+                <Link href="/nous-contacter">Prendre rendez-vous</Link>
+              </Button>
+            </motion.div>
+            
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, x: 30 },
+                visible: { 
+                  opacity: 1, 
+                  x: 0,
+                  transition: { 
+                    duration: 0.8,
+                    ease: "backOut"
+                  }
+                }
+              }}
+            >
+              <Button asChild variant="outline" size="lg" className="bg-white/10 text-white hover:bg-white/20">
+                <Link href="/notre-savoir-faire">
+                  Découvrir nos services <ChevronRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
 
       {/* Section Services */}
       <section className="py-20">
