@@ -196,10 +196,10 @@ export default function VieDuCabinet() {
       </section>
 
       {/* Newsletter */}
-      <section className="py-16 bg-primary/10">
+      <section className="py-16 bg-complementary/10">
         <div className="container-custom">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl font-bold mb-4 text-primary">Restez informé de la vie du cabinet</h2>
+            <h2 className="text-2xl font-bold mb-4 text-black">Restez informé de la vie du cabinet</h2>
             <p className="mb-8 text-muted-foreground">
               Inscrivez-vous à notre newsletter pour recevoir nos dernières actualités et événements.
             </p>

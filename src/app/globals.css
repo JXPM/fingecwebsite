@@ -31,6 +31,9 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+  /* Nouvelle couleur complémentaire */
+  --complementary: 216 63% 27%; /* Bleu professionnel */
+  --complementary-foreground: 0 0% 98%;
   }
 
   .dark {
@@ -88,5 +91,20 @@
 
   .heading-secondary {
     @apply text-2xl md:text-3xl font-semibold text-secondary;
+  }
+  .bg-complementary {
+    background-color: hsl(var(--complementary));
+  }
+  .bg-complementary\/10 {
+    background-color: hsl(var(--complementary)/0.1);
+  }
+  .bg-complementary\/90 {
+    background-color: hsl(var(--complementary)/0.9);
+  }
+  .border-complementary {
+    border-color: hsl(var(--complementary));
+  }
+  .text-complementary {
+    color: hsl(var(--complementary));
   }
 }

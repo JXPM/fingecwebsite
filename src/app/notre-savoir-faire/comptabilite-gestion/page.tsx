@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +12,7 @@ import {
   FileText, 
   ArrowRight 
 } from "lucide-react";
+import Image from "next/image";
 
 export default function ComptabiliteGestion() {
   return (
@@ -71,7 +74,14 @@ export default function ComptabiliteGestion() {
             <div className="relative h-[400px] bg-slate-200 rounded-lg shadow-xl">
               {/* Emplacement pour une image professionnelle */}
               <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                <span className="text-sm">Image illustrant les services comptables</span>
+                <Image
+                  src="/images/servicecomptable.webp"
+                  alt="Image de comptabilité"
+                  className="object-cover w-full h-full rounded-lg"
+                  priority
+                  fill
+                  quality={90}
+                />
               </div>
             </div>
           </div>
@@ -82,7 +92,14 @@ export default function ComptabiliteGestion() {
             <div className="order-2 md:order-1 relative h-[400px] bg-slate-200 rounded-lg shadow-xl">
               {/* Emplacement pour une image professionnelle */}
               <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                <span className="text-sm">Image illustrant les services de gestion</span>
+                <Image
+                  src="/images/servicegestion.jpg"
+                  alt="Image de gestion"
+                  className="object-cover w-full h-full rounded-lg"
+                  priority
+                  fill
+                  quality={90}
+                />
               </div>
             </div>
             <div className="order-1 md:order-2">
@@ -126,7 +143,7 @@ export default function ComptabiliteGestion() {
       </section>
 
       {/* Nos offres */}
-      <section className="py-20 bg-secondary/5">
+      <section className="py-20 bg-complementary/10">
         <div className="container-custom">
           <div className="text-center mb-16">
             <h2 className="heading-secondary mb-4">Nos offres adaptées à votre activité</h2>
@@ -152,11 +169,11 @@ export default function ComptabiliteGestion() {
                 <ul className="space-y-2 mb-6">
                   <li className="flex items-start gap-2">
                     <ArrowRight className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span>Tenue comptable trimestrielle</span>
+                    <span>Tenue comptable</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <ArrowRight className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span>Déclarations fiscales annuelles</span>
+                    <span>Déclarations fiscales</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <ArrowRight className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -175,7 +192,7 @@ export default function ComptabiliteGestion() {
 
             {/* Offre 2 */}
             <Card className="bg-white shadow-md relative border-primary">
-              <div className="absolute top-0 inset-x-0 bg-primary text-white text-center py-1 text-sm font-medium">
+              <div className="absolute top-1 inset-x-2 bg-primary text-white text-center py-1 text-sm font-medium">
                 Recommandé
               </div>
               <CardHeader className="text-center pt-10">
@@ -191,7 +208,7 @@ export default function ComptabiliteGestion() {
                 <ul className="space-y-2 mb-6">
                   <li className="flex items-start gap-2">
                     <ArrowRight className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span>Tenue comptable mensuelle</span>
+                    <span>Tenue comptable</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <ArrowRight className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -326,7 +343,7 @@ export default function ComptabiliteGestion() {
       </section>
 
       {/* Call to Action */}
-      <section className="py-16 bg-primary text-white">
+      <section className="py-16 bg-complementary text-white">
         <div className="container-custom">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">Prêt à optimiser la gestion de votre entreprise ?</h2>

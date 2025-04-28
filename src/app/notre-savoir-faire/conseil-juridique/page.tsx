@@ -309,7 +309,7 @@ export default function ConseilJuridique() {
       </section>
 
       {/* Call to Action */}
-      <section className="py-16 bg-primary text-white">
+      <section className="py-16 bg-complementary text-white">
         <div className="container-custom">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">Besoin d'un conseil juridique ?</h2>

@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CalendarDays, User, Tag, ArrowLeft, FileText, Download } from "lucide-react";
+import { FormEvent, useState } from "react";
 
 export default function BaseDocumentation() {
   // Articles factices pour la démo
@@ -212,6 +215,12 @@ export default function BaseDocumentation() {
     }
   ];
 
+  const [email, setEmail] = useState("");
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <>
       {/* Hero Section */}
@@ -308,23 +317,27 @@ export default function BaseDocumentation() {
       </section>
 
       {/* Newsletter */}
-      <section className="py-16 bg-primary/10">
+      <section className="py-16 bg-complementary/10">
         <div className="container-custom">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl font-bold mb-4 text-primary">Restez informé des actualités</h2>
+            <h2 className="text-2xl font-bold mb-4 text-dark">Restez informé des actualités</h2>
             <p className="mb-8 text-muted-foreground">
               Inscrivez-vous à notre newsletter pour recevoir nos dernières publications et veilles juridiques.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <input 
-                type="email" 
-                placeholder="Votre adresse email" 
-                className="px-4 py-2 rounded-md w-full sm:w-auto border border-gray-300"
-              />
+            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 justify-center">
+        <input
+          type="email"
+          name="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Votre adresse email"
+          className="px-4 py-2 rounded-md w-full sm:w-auto border border-gray-300"
+          required
+        />
               <Button>
                 S'inscrire
               </Button>
-            </div>
+            </form>
             <p className="text-sm mt-4 text-muted-foreground">
               En vous inscrivant, vous acceptez de recevoir nos communications. Vous pourrez vous désinscrire à tout moment.
             </p>

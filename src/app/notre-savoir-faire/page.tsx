@@ -204,7 +204,7 @@ export default function NotreSavoirFaire() {
       {/* Call to Action */}
       <section className="py-16">
         <div className="container-custom">
-          <div className="bg-primary rounded-lg p-8 text-white text-center">
+          <div className="bg-complementary rounded-lg p-8 text-white text-center">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">
               Besoin d'une expertise comptable adaptée à votre activité ?
             </h2>
