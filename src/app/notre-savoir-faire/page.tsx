@@ -1,14 +1,43 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ChevronRight, FileText, Briefcase, Users, HandCoins, FileCheck, Building, Scale, Receipt, ClipboardCheck } from "lucide-react";
+import { useEffect } from "react";
 
 export default function NotreSavoirFaire() {
+  // Fonction pour observer les éléments et ajouter la classe active lorsqu'ils sont visibles
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-active');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    // Sélectionner tous les éléments avec la classe 'animate-on-scroll'
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
+    animatedElements.forEach(el => observer.observe(el));
+
+    return () => {
+      animatedElements.forEach(el => observer.unobserve(el));
+    };
+  }, []);
+
   return (
     <>
       {/* Hero Section */}
-      <section className="bg-gray-50 py-20">
+      <section className="bg-gray-50 py-20 animate-on-scroll fade-in-up">
         <div className="container-custom">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="heading-primary mb-6">Notre savoir-faire</h1>
@@ -22,13 +51,13 @@ export default function NotreSavoirFaire() {
       </section>
 
       {/* Services principaux */}
-      <section className="py-20">
+      <section className="py-20 animate-on-scroll fade-in-up">
         <div className="container-custom">
           <h2 className="heading-secondary text-center mb-12">Nos domaines d'expertise</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Comptabilité et gestion */}
-            <Card className="shadow-md hover:shadow-xl transition-shadow duration-300">
+            <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 animate-on-scroll fade-in-right delay-100">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <FileText className="h-6 w-6 text-primary" />
@@ -64,7 +93,7 @@ export default function NotreSavoirFaire() {
             </Card>
 
             {/* Conseil et assistance juridique */}
-            <Card className="shadow-md hover:shadow-xl transition-shadow duration-300">
+            <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 animate-on-scroll fade-in-up delay-200">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Briefcase className="h-6 w-6 text-primary" />
@@ -100,7 +129,7 @@ export default function NotreSavoirFaire() {
             </Card>
 
             {/* Social */}
-            <Card className="shadow-md hover:shadow-xl transition-shadow duration-300">
+            <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 animate-on-scroll fade-in-left delay-300">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Users className="h-6 w-6 text-primary" />
@@ -139,7 +168,7 @@ export default function NotreSavoirFaire() {
       </section>
 
       {/* Notre approche */}
-      <section className="py-20 bg-secondary/5">
+      <section className="py-20 bg-secondary/5 animate-on-scroll fade-in-up">
         <div className="container-custom">
           <div className="max-w-3xl mx-auto">
             <h2 className="heading-secondary text-center mb-8">Notre approche personnalisée</h2>
@@ -149,7 +178,7 @@ export default function NotreSavoirFaire() {
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-              <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="bg-white p-6 rounded-lg shadow-md animate-on-scroll fade-in-right delay-100">
                 <h3 className="text-xl font-semibold text-primary mb-4">
                   Pour les entrepreneurs individuels
                 </h3>
@@ -173,7 +202,7 @@ export default function NotreSavoirFaire() {
                 </ul>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="bg-white p-6 rounded-lg shadow-md animate-on-scroll fade-in-left delay-200">
                 <h3 className="text-xl font-semibold text-primary mb-4">
                   Pour les PME et ETI
                 </h3>
@@ -202,7 +231,7 @@ export default function NotreSavoirFaire() {
       </section>
 
       {/* Call to Action */}
-      <section className="py-16">
+      <section className="py-16 animate-on-scroll fade-in-up">
         <div className="container-custom">
           <div className="bg-complementary rounded-lg p-8 text-white text-center">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">
@@ -212,7 +241,7 @@ export default function NotreSavoirFaire() {
               Prenez rendez-vous pour échanger sur vos besoins spécifiques et découvrir
               comment nous pouvons vous accompagner dans la réussite de votre entreprise.
             </p>
-            <Button asChild size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10">
+            <Button asChild size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10 animate-on-scroll pulse-effect delay-300">
               <Link href="/nous-contacter">
                 Prendre rendez-vous
               </Link>
@@ -220,6 +249,66 @@ export default function NotreSavoirFaire() {
           </div>
         </div>
       </section>
+
+      {/* Styles pour les animations */}
+      <style jsx global>{`
+        /* Classes d'animation de base */
+        .animate-on-scroll {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .animate-active {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        
+        /* Animation fade-in-up */
+        .fade-in-up {
+          transform: translateY(30px);
+        }
+        
+        /* Animation fade-in-right */
+        .fade-in-right {
+          transform: translateX(-30px);
+        }
+        
+        /* Animation fade-in-left */
+        .fade-in-left {
+          transform: translateX(30px);
+        }
+        
+        /* Animation pulse pour le bouton CTA */
+        .pulse-effect.animate-active {
+          animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+          }
+        }
+        
+        /* Délais d'animation */
+        .delay-100 {
+          transition-delay: 0.1s;
+        }
+        
+        .delay-200 {
+          transition-delay: 0.2s;
+        }
+        
+        .delay-300 {
+          transition-delay: 0.3s;
+        }
+      `}</style>
     </>
   );
 }
