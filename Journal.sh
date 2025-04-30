@@ -18,5 +18,5 @@ touch backend/.gitignore
 #fichier Maj et push
 git status
 git add .
-git commit -m "Ajout des animations & plus"
+git commit -m "update"
 git push origin main

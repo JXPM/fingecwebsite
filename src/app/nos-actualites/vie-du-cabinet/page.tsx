@@ -71,9 +71,9 @@ export default function VieDuCabinet() {
                 </CardContent>
                 <CardFooter>
                   <Button asChild variant="outline" className="w-full">
-                    <Link href={`/nos-actualites/vie-du-cabinet/article-${article.id}`}>
-                      Lire l'article
-                    </Link>
+                  <Link href={`/nos-actualites/vie-du-cabinet/${article.id}`}>
+                    Lire l'article
+                  </Link>
                   </Button>
                 </CardFooter>
               </Card>

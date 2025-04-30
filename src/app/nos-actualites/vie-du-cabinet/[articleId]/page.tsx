@@ -1,30 +1,31 @@
 import { notFound } from "next/navigation";
-import { articles } from "@/lib/articles-cabinet";
+import { articles as articlesCabinet } from "@/lib/articles-cabinet";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, FileText } from "lucide-react";
 import Link from "next/link";
-import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, Key } from "react";
 
 export async function generateStaticParams() {
-  return articles.map((article) => ({
-    articleId: article.id,
+  return articlesCabinet.map((article) => ({
+    articleId: article.id // Format cohérent avec les liens
   }));
 }
 
+export const dynamicParams = false;
+
 export default function ArticlePage({ params }: { params: { articleId: string } }) {
-const article = articles.find((a) => a.id === params.articleId);
+  const article = articlesCabinet.find((a) => a.id === params.articleId);
+  
   if (!article) {
     return notFound();
   }
-
 
   return (
     <div className="container-custom py-12">
       <div className="flex mb-8">
         <Button asChild variant="ghost" className="flex items-center text-muted-foreground">
-          <Link href="/nos-actualites/base-de-documentation">
+          <Link href="/nos-actualites">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour à la documentation
+            Retour aux actualités
           </Link>
         </Button>
       </div>
@@ -44,7 +45,7 @@ const article = articles.find((a) => a.id === params.articleId);
           <div className="mt-12 border-t pt-8">
             <h2 className="text-xl font-semibold mb-4">Ressources associées</h2>
             <ul className="space-y-2">
-              {article.resources.map((resource: { name: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; type: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; }, idx: Key | null | undefined) => (
+              {article.resources.map((resource: any, idx: number) => (
                 <li key={idx} className="flex items-center">
                   <FileText className="h-4 w-4 mr-2 text-primary" />
                   <span className="mr-2">{resource.name}</span>
