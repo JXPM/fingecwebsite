@@ -76,8 +76,8 @@ export default function NousContacter() {
                     <div>
                       <h3 className="font-medium mb-1">Horaires d'ouverture</h3>
                       <p className="text-muted-foreground">
-                        Lundi - Vendredi: 8h30 - 18h00<br />
-                        Samedi - Dimanche: Fermé
+                      Lundi-Vendredi: 9h00-12h00 & 14h00-18h00<br />
+                      Samedi-Dimanche: Fermé
                       </p>
                     </div>
                   </div>
