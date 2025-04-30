@@ -18,5 +18,5 @@ touch backend/.gitignore
 #fichier Maj et push
 git status
 git add .
-git commit -m "update"
+git commit -m "modification section de candidature"
 git push origin main
