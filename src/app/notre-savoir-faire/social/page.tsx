@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import {
   Users,
@@ -125,7 +126,14 @@ export default function Social() {
             <AnimatedSection animation="slideLeft" className="relative h-[400px] bg-slate-200 rounded-lg shadow-xl">
               {/* Emplacement pour une image professionnelle */}
               <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                <span className="text-sm">Image illustrant la gestion de la paie</span>
+                <Image
+                    src="/images/paie.jpg"
+                    alt="Image de gestion de la paie"
+                    className="object-cover w-full h-full rounded-lg"
+                    priority
+                    fill
+                    quality={90}
+                />
               </div>
             </AnimatedSection>
           </div>
@@ -136,7 +144,14 @@ export default function Social() {
             <AnimatedSection animation="slideRight" className="order-2 md:order-1 relative h-[400px] bg-slate-200 rounded-lg shadow-xl">
               {/* Emplacement pour une image professionnelle */}
               <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                <span className="text-sm">Image illustrant la gestion RH</span>
+              <Image
+                    src="/images/RH.jpg"
+                    alt="Image de gestion des ressources humaines"
+                    className="object-cover w-full h-full rounded-lg"
+                    priority
+                    fill
+                    quality={90}
+                />
               </div>
             </AnimatedSection>
             <AnimatedSection animation="slideLeft" className="order-1 md:order-2">

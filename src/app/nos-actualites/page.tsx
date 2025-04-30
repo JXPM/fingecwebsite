@@ -210,7 +210,7 @@ export default function NosActualites() {
       </section>
 
       {/* Newsletter */}
-      <section className="py-16 bg-complementary text-white">
+      <section className="py-16 bg- text-white">
         <div className="container-custom">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">Restez informé</h2>

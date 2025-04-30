@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { 
@@ -124,7 +125,14 @@ export default function ConseilJuridique() {
             <AnimatedSection animation="slideLeft" className="relative h-[400px] bg-slate-200 rounded-lg shadow-xl">
               {/* Emplacement pour une image professionnelle */}
               <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                <span className="text-sm">Image illustrant le conseil juridique</span>
+              <Image 
+                  src="/images/cabinet-juridique.jpg"
+                  alt="Image de conseil juridique"
+                  className="object-cover w-full h-full rounded-lg"
+                  priority
+                  fill
+                  quality={90}
+                />
               </div>
             </AnimatedSection>
           </div>
@@ -135,7 +143,14 @@ export default function ConseilJuridique() {
             <AnimatedSection animation="slideRight" className="order-2 md:order-1 relative h-[400px] bg-slate-200 rounded-lg shadow-xl">
               {/* Emplacement pour une image professionnelle */}
               <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                <span className="text-sm">Image illustrant l'assistance juridique</span>
+              <Image 
+                  src="/images/assistance.jpg"
+                  alt="Image d'assistance juridique"
+                  className="object-cover w-full h-full rounded-lg"
+                  priority
+                  fill
+                  quality={90}
+                />
               </div>
             </AnimatedSection>
             <AnimatedSection animation="slideLeft" className="order-1 md:order-2">

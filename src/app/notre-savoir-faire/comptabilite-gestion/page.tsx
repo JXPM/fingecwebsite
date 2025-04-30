@@ -127,7 +127,7 @@ export default function ComptabiliteGestion() {
               {/* Emplacement pour une image professionnelle */}
               <div className="absolute inset-0 flex items-center justify-center text-gray-400">
                 <Image
-                  src="/images/servicecomptable.webp"
+                  src="/images/servicecomptable.jpg"
                   alt="Image de comptabilité"
                   className="object-cover w-full h-full rounded-lg"
                   priority
