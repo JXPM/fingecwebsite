@@ -31,9 +31,9 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-  /* Nouvelle couleur complémentaire */
-  --complementary: 216 63% 27%; /* Bleu professionnel */
-  --complementary-foreground: 0 0% 98%;
+    /* Nouvelle couleur complémentaire */
+    --complementary: 216 63% 27%; /* Bleu professionnel */
+    --complementary-foreground: 0 0% 98%;
   }
 
   .dark {
