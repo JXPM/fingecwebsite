@@ -29,23 +29,39 @@ const Header = () => {
         : "bg-white/95 py-4"
       }`}
     >
-      <div className="container-custom flex justify-between items-center">
-        {/* Logo */}
-        <Link href="/" className="relative flex items-center">
-          <div className="font-bold text-2xl text-primary tracking-tighter mr-2">
+      <div className="container-custom flex items-center justify-between px-0 w-full max-w-full">
+        {/* FINGEC Title - Left Section */}
+        <div className="flex flex-col items-start pl-9">
+          <div className="font-bold text-5xl text-primary tracking-tighter">
             FINGEC
           </div>
-          <div className="text-sm text-secondary hidden md:block">
-            Expertise Comptable
+          <div className="text-xs text-secondary hidden md:block">
+            Ordre des experts comptables d'Alsace
           </div>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <div className="hidden md:block">
+        </div>
+        
+        {/* Navigation - Centered Section */}
+        <div className="hidden md:flex flex-1 items-center justify-center mx-4">
           <Navigation />
         </div>
 
-        {/* Mobile Menu */}
+        {/* Logo - Right Section */}
+        <div className="flex items-center pr-9">
+          <div className="hidden md:block">
+            <Button asChild variant="default" size="sm" className="mr-4">
+              <Link href="/nous-contacter">
+                Prendre RDV
+              </Link>
+            </Button>
+          </div>
+          <Link href="/" className="relative flex items-center">
+            <div className="w-12 h-12 bg-primary/10  flex items-center justify-center">
+              <Image src="/images/Fingec-Logo-Final-Fond-Blanc LOGO.jpg" alt="FINGEC Logo" width={40} height={40} />
+            </div>
+          </Link>
+        </div>
+
+        {/* Mobile Menu Button - Right Section (Mobile only) */}
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>

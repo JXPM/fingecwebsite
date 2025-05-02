@@ -18,5 +18,5 @@ touch backend/.gitignore
 #fichier Maj et push
 git status
 git add .
-git commit -m "maj"
+git commit -m "maj de menu de navigation"
 git push origin main

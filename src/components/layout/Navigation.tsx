@@ -25,8 +25,8 @@ const Navigation = () => {
   };
 
   return (
-    <NavigationMenu>
-      <NavigationMenuList>
+    <NavigationMenu className="justify-center">
+      <NavigationMenuList className="justify-center">
         <NavigationMenuItem>
           <Link href="/" legacyBehavior passHref>
             <NavigationMenuLink
@@ -129,7 +129,7 @@ const Navigation = () => {
                 isActive("/outils-liens") ? "bg-muted" : ""
               )}
             >
-              Outils & Liens utiles
+              Outils & Liens
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>

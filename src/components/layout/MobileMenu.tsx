@@ -24,7 +24,17 @@ const MobileMenu = () => {
 
   return (
     <div className="flex flex-col h-full py-6 px-4">
-      <div className="text-2xl font-bold text-primary mb-8">FINGEC</div>
+      <div className="flex flex-col items-center mb-8">
+        <div className="text-2xl font-bold text-primary">FINGEC</div>
+        <div className="text-sm text-secondary">Ordre des experts comptables d'Alsace</div>
+        
+        {/* Logo placeholder in mobile menu */}
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mt-4">
+          {/* Replace with actual logo */}
+          {/* <Image src="/path/to/logo.png" alt="FINGEC Logo" width={56} height={56} /> */}
+          <span className="text-primary font-bold text-2xl">F</span>
+        </div>
+      </div>
 
       <nav className="space-y-2">
         <Link
@@ -168,6 +178,18 @@ const MobileMenu = () => {
           )}
         >
           Nous contacter
+        </Link>
+        
+        <Link
+          href="/outils-liens"
+          className={cn(
+            "block py-2 px-3 rounded-md transition-colors",
+            isActive("/outils-liens")
+              ? "bg-primary/10 text-primary font-medium"
+              : "hover:bg-muted"
+          )}
+        >
+          Outils & Liens utiles
         </Link>
       </nav>
 
