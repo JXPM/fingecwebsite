@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Upload, Loader2 } from "lucide-react";
 
-// Schema de validation
 const formSchema = z.object({
   firstName: z.string().min(2, {
     message: "Le prénom doit contenir au moins 2 caractères",
@@ -43,7 +42,12 @@ const formSchema = z.object({
   resume: z.string().optional(),
 });
 
-const ApplicationForm = () => {
+interface ApplicationFormProps {
+  defaultPosition?: string;
+  isSpontaneous?: boolean;
+}
+
+const ApplicationForm = ({ defaultPosition = '', isSpontaneous = false }: ApplicationFormProps) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -56,7 +60,7 @@ const ApplicationForm = () => {
       lastName: "",
       email: "",
       phone: "",
-      position: "",
+      position: defaultPosition,
       experience: "",
       message: "",
       resume: "",
@@ -67,14 +71,12 @@ const ApplicationForm = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Vérification de la taille (5MB max)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       setSubmitError(`Le fichier "${file.name}" est trop volumineux. La taille maximale autorisée est de 5MB.`);
       return;
     }
 
-    // Vérification du type de fichier
     const allowedTypes = ['.pdf', '.doc', '.docx'];
     const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     if (!allowedTypes.includes(fileExtension)) {
@@ -82,21 +84,16 @@ const ApplicationForm = () => {
       return;
     }
 
-    // Si tout est OK, on efface les erreurs précédentes et on enregistre le fichier
     setSubmitError(null);
     setResumeFile(file);
   };
 
-  // Fonction onSubmit modifiée pour utiliser FormData
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
-      // Créer un FormData pour envoyer les données du formulaire et le fichier
       const formData = new FormData();
-
-      // Ajouter tous les champs textuels
       formData.append('firstName', values.firstName);
       formData.append('lastName', values.lastName);
       formData.append('email', values.email);
@@ -105,16 +102,12 @@ const ApplicationForm = () => {
       formData.append('experience', values.experience);
       formData.append('message', values.message);
 
-      // Ajouter le fichier CV s'il existe
       if (resumeFile) {
         formData.append('resume', resumeFile);
       }
 
-      // Appel à l'API pour envoyer la candidature avec FormData
       const response = await fetch('/api/application', {
         method: 'POST',
-        // Pas besoin de spécifier le Content-Type, il sera automatiquement défini
-        // avec le boundary approprié pour les données multipart
         body: formData,
       });
 
@@ -227,7 +220,15 @@ const ApplicationForm = () => {
             <FormItem>
               <FormLabel>Poste recherché *</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: Comptable, Assistant comptable, etc." {...field} />
+                <Input 
+                  placeholder={
+                    isSpontaneous 
+                      ? "Ex: Comptable, Assistant comptable, etc." 
+                      : "Sélectionnez un poste dans nos offres"
+                  }
+                  {...field}
+                  readOnly={!isSpontaneous && !!defaultPosition}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
