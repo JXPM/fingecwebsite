@@ -365,4 +365,4 @@ export default function ChatbotWidget() {
       </form>
     </div>
   );
-}
+}  
