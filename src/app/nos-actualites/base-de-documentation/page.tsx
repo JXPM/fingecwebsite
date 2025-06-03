@@ -4,17 +4,305 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, User, Tag, ArrowLeft, FileText, Download } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { articles } from "@/lib/articles";
+import { toast } from "react-hot-toast";
+
+interface SubscriptionForm {
+  email: string;
+  nom: string;
+  prenom: string;
+  telephone: string;
+}
 
 export default function BaseDocumentation() {
-  const [email, setEmail] = useState("");
+  const [formData, setFormData] = useState<SubscriptionForm>({
+    email: '',
+    nom: '',
+    prenom: '',
+    telephone: ''
+  });
+  
+  const [loading, setLoading] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+  const [showFullForm, setShowFullForm] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // Logique d'inscription à la newsletter
-    console.log("Email submitted:", email);
-    setEmail("");
+  // Vérifier si l'utilisateur est déjà inscrit
+  useEffect(() => {
+    const isSubscribed = localStorage.getItem('newsletter_subscribed_base-documentation');
+    if (isSubscribed) {
+      setSubscribed(true);
+    }
+  }, []);
+
+  // Inscription aux notifications push (optionnel)
+  useEffect(() => {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      registerServiceWorker();
+    }
+  }, []);
+
+  const registerServiceWorker = async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service Worker enregistré:', registration);
+    } catch (error) {
+      console.error('Erreur Service Worker:', error);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (!validateEmail(formData.email)) {
+      toast.error('Veuillez saisir un email valide');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          source: 'base-documentation'
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Inscription réussie ! Vérifiez votre email.');
+        setSubscribed(true);
+        localStorage.setItem('newsletter_subscribed_base-documentation', 'true');
+        
+        // Demander permission pour notifications push
+        await requestNotificationPermission(result.subscriberId);
+        
+        // Reset form
+        setFormData({
+          email: '',
+          nom: '',
+          prenom: '',
+          telephone: ''
+        });
+      } else {
+        toast.error(result.message || 'Erreur lors de l\'inscription');
+      }
+    } catch (error) {
+      console.error('Erreur inscription:', error);
+      toast.error('Erreur de connexion. Veuillez réessayer.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const requestNotificationPermission = async (subscriberId: number) => {
+    if ('Notification' in window && 'serviceWorker' in navigator) {
+      const permission = await Notification.requestPermission();
+      
+      if (permission === 'granted') {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+          });
+
+          // Envoyer les détails au serveur
+          await fetch('/api/newsletter/push-subscribe', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              subscriberId,
+              subscription
+            }),
+          });
+
+          toast.success('Notifications activées !');
+        } catch (error) {
+          console.error('Erreur notifications push:', error);
+        }
+      }
+    }
+  };
+
+  const renderNewsletterSection = () => {
+    if (subscribed) {
+      return (
+        <section className="py-16 bg-complementary/10">
+          <div className="container-custom">
+            <div className="max-w-3xl mx-auto">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
+                <div className="text-green-600 mb-4">
+                  <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-green-800 mb-4">
+                  Vous êtes inscrit à notre newsletter !
+                </h3>
+                <p className="text-green-700 text-lg">
+                  Merci pour votre inscription. Vous recevrez nos actualités de la base documentaire par email et notifications push.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    return (
+      <section className="py-16 bg-complementary/10">
+        <div className="container-custom">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold mb-4 text-dark">Restez informé des actualités</h2>
+              <p className="mb-8 text-muted-foreground">
+                Inscrivez-vous à notre newsletter pour recevoir nos dernières publications et veilles juridiques de la base documentaire.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email (toujours visible) */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Votre adresse email *
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-colors text-base"
+                  placeholder="exemple@email.com"
+                />
+              </div>
+
+              {/* Bouton pour afficher les champs optionnels */}
+              {!showFullForm && (
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowFullForm(true)}
+                    className="text-sm text-primary hover:text-primary/80 underline"
+                  >
+                    + Ajouter mes informations personnelles (optionnel)
+                  </button>
+                </div>
+              )}
+
+              {/* Champs optionnels */}
+              {showFullForm && (
+                <div className="space-y-4 border-t pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="prenom" className="block text-sm font-medium text-gray-700 mb-2">
+                        Prénom
+                      </label>
+                      <input
+                        type="text"
+                        id="prenom"
+                        name="prenom"
+                        value={formData.prenom}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                        placeholder="Votre prénom"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="nom" className="block text-sm font-medium text-gray-700 mb-2">
+                        Nom
+                      </label>
+                      <input
+                        type="text"
+                        id="nom"
+                        name="nom"
+                        value={formData.nom}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                        placeholder="Votre nom"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="telephone" className="block text-sm font-medium text-gray-700 mb-2">
+                      Téléphone
+                    </label>
+                    <input
+                      type="tel"
+                      id="telephone"
+                      name="telephone"
+                      value={formData.telephone}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                      placeholder="06 12 34 56 78"
+                    />
+                  </div>
+
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowFullForm(false)}
+                      className="text-sm text-gray-500 hover:text-gray-700 underline"
+                    >
+                      - Masquer les champs optionnels
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="text-center">
+                <Button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full sm:w-auto px-8 py-3 text-base"
+                >
+                  {loading ? (
+                    <div className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Inscription en cours...
+                    </div>
+                  ) : (
+                    "S'inscrire à la newsletter"
+                  )}
+                </Button>
+              </div>
+
+              <p className="text-sm text-center text-muted-foreground">
+                En vous inscrivant, vous acceptez de recevoir nos communications. Vous pourrez vous désinscrire à tout moment.
+              </p>
+            </form>
+          </div>
+        </div>
+      </section>
+    );
   };
 
   return (
@@ -112,34 +400,8 @@ export default function BaseDocumentation() {
         </div>
       </section>
 
-      {/* Newsletter */}
-      <section className="py-16 bg-complementary/10">
-        <div className="container-custom">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl font-bold mb-4 text-dark">Restez informé des actualités</h2>
-            <p className="mb-8 text-muted-foreground">
-              Inscrivez-vous à notre newsletter pour recevoir nos dernières publications et veilles juridiques.
-            </p>
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 justify-center">
-              <input
-                type="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Votre adresse email"
-                className="px-4 py-2 rounded-md w-full sm:w-auto border border-gray-300"
-                required
-              />
-              <Button type="submit">
-                S'inscrire
-              </Button>
-            </form>
-            <p className="text-sm mt-4 text-muted-foreground">
-              En vous inscrivant, vous acceptez de recevoir nos communications. Vous pourrez vous désinscrire à tout moment.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* Newsletter Section */}
+      {renderNewsletterSection()}
     </>
   );
 }

@@ -1,61 +1,71 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExternalLink, Calculator, CreditCard, PiggyBank, Briefcase, FileText, Building2, Globe2, Shield } from "lucide-react";
+import Link from "next/link";
 
 const LINKS = [
   {
     title: "Simulateur d'impôt sur le revenu",
     url: "https://www.impots.gouv.fr/simulateur/",
-    description: "Calculez rapidement l’impôt sur le revenu dû pour votre foyer.",
-    icon: Calculator
+    description: "Calculez rapidement l'impôt sur le revenu dû pour votre foyer.",
+    icon: Calculator,
+    external: true
   },
   {
     title: "Espace professionnel impots.gouv.fr",
     url: "https://www.impots.gouv.fr/portail/professionnel",
     description: "Accédez à votre compte fiscal professionnel (déclarations, TVA, liasses fiscales, échéances).",
-    icon: Briefcase
+    icon: Briefcase,
+    external: true
   },
   {
     title: "Simulateur Auto-Entrepreneur (charges, revenus)",
-    url: "https://www.autoentrepreneur.urssaf.fr/portail/accueil/outils-et-services/simulateurs.html",
+    url: "https://www.urssaf.fr/accueil/outils-documentation/simulateurs/cotisations-auto-entrepeneur.html",
     description: "Estimez vos cotisations et votre revenu net en micro-entrepreneur.",
-    icon: PiggyBank
+    icon: PiggyBank,
+    external: true
   },
   {
     title: "URSSAF — Mon compte employeur",
     url: "https://mon.urssaf.fr/",
-    description: "Déclarez et payez vos cotisations sociales en tant qu’employeur.",
-    icon: CreditCard
+    description: "Déclarez et payez vos cotisations sociales en tant qu'employeur.",
+    icon: CreditCard,
+    external: true
   },
   {
-    title: "Simulateur de bulletin de paie brut/net",
-    url: "https://www.service-public.fr/simulateur/calcul/salaire-net-brut",
-    description: "Convertissez salaire brut/net ou simulez un bulletin de paie.",
-    icon: FileText
+    title: "Simulateur de bulletin de paie",
+    url: "/outils-liens/bulletin-paie",
+    description: "Convertissez salaire brut/net ou simulez un bulletin de paie complet.",
+    icon: FileText,
+    external: false
   },
   {
-    title: "Création d’entreprise (guichet unique)",
+    title: "Création d'entreprise (guichet unique)",
     url: "https://procedures.inpi.fr/?/login",
     description: "Déclarez la création/modification de votre entreprise en ligne (INPI).",
-    icon: Building2
+    icon: Building2,
+    external: true
   },
   {
     title: "Aides aux entreprises (France Num)",
     url: "https://aides-entreprises.fr/",
     description: "Recherchez toutes les aides publiques disponibles pour votre entreprise.",
-    icon: Globe2
+    icon: Globe2,
+    external: true
   },
   {
     title: "Simulateur RSI (TNS – travailleur non salarié)",
-    url: "https://www.secu-independants.fr/cotisations/simulations/",
+    url: "https://secu-independants.fr/simulateur-cotisations-sociales",
     description: "Estimez les cotisations sociales TNS – gérants majoritaires, professions libérales.",
-    icon: Shield
+    icon: Shield,
+    external: true
   },
   {
     title: "Simulateur frais kilométriques",
-    url: "https://www.service-public.fr/particuliers/vosdroits/F20558",
-    description: "Calculez l’indemnité kilométrique pour les frais de déplacement professionnels.",
-    icon: ExternalLink
+    url: "https://www.impots.gouv.fr/simulateur-bareme-kilometrique",
+    description: "Calculez l'indemnité kilométrique pour les frais de déplacement professionnels.",
+    icon: ExternalLink,
+    external: true
   },
 ];
 
@@ -66,7 +76,7 @@ export default function OutilsLiensPage() {
         <div className="mb-10 max-w-2xl mx-auto text-center">
           <h1 className="heading-primary mb-4">Outils & Liens utiles</h1>
           <p className="text-muted-foreground text-lg">
-            Retrouvez ici une sélection de liens et de simulateurs officiels pour faciliter votre gestion, vos obligations et vos démarches d’entreprise (fiscalité, social, création…).
+            Retrouvez ici une sélection de liens et de simulateurs officiels pour faciliter votre gestion, vos obligations et vos démarches d'entreprise (fiscalité, social, création…).
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -80,11 +90,19 @@ export default function OutilsLiensPage() {
               </CardHeader>
               <CardContent className="flex flex-col flex-grow justify-between">
                 <p className="text-sm text-muted-foreground mb-4">{link.description}</p>
-                <Button asChild variant="outline" size="sm" className="mt-auto w-fit">
-                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center">
-                    Accéder au service <ExternalLink className="w-4 h-4 ml-1" />
-                  </a>
-                </Button>
+                {link.external ? (
+                  <Button asChild variant="outline" size="sm" className="mt-auto w-fit">
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center">
+                      Accéder au service <ExternalLink className="w-4 h-4 ml-1" />
+                    </a>
+                  </Button>
+                ) : (
+                  <Button asChild variant="outline" size="sm" className="mt-auto w-fit">
+                    <Link href={link.url} className="inline-flex items-center">
+                      Accéder au service <ExternalLink className="w-4 h-4 ml-1" />
+                    </Link>
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}
