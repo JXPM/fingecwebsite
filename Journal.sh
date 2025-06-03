@@ -54,5 +54,5 @@ touch backend/.gitignore
 #fichier Maj et push
 git status
 git add .
-git commit -m "implementation et ajout des emails"
+git commit -m "maj"
 git push origin main
