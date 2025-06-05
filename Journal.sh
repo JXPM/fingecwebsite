@@ -54,5 +54,5 @@ touch backend/.gitignore
 #fichier Maj et push
 git status
 git add .
-git commit -m "maj et ajout de backend"
+git commit -m "maj des liens "
 git push origin main
