@@ -15,6 +15,14 @@ interface SubscriptionForm {
   telephone: string;
 }
 
+type RSSArticle = {
+  title: string;
+  link: string;
+  contentSnippet: string;
+  pubDate: string;
+  source: string;
+};
+
 export default function BaseDocumentation() {
   const [formData, setFormData] = useState<SubscriptionForm>({
     email: '',
@@ -26,6 +34,25 @@ export default function BaseDocumentation() {
   const [loading, setLoading] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [showFullForm, setShowFullForm] = useState(false);
+  const [rssArticles, setRssArticles] = useState<RSSArticle[]>([]);
+  const [loadingRss, setLoadingRss] = useState(true);
+
+  // Charger les articles RSS
+  useEffect(() => {
+    const fetchRss = async () => {
+      try {
+        const res = await fetch('/api/rss');
+        const data = await res.json();
+        setRssArticles(data);
+      } catch (err) {
+        console.error('Erreur chargement RSS', err);
+        toast.error('Erreur lors du chargement des actualités');
+      } finally {
+        setLoadingRss(false);
+      }
+    };
+    fetchRss();
+  }, []);
 
   // Vérifier si l'utilisateur est déjà inscrit
   useEffect(() => {
@@ -183,7 +210,6 @@ export default function BaseDocumentation() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email (toujours visible) */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Votre adresse email *
@@ -200,7 +226,6 @@ export default function BaseDocumentation() {
                 />
               </div>
 
-              {/* Bouton pour afficher les champs optionnels */}
               {!showFullForm && (
                 <div className="text-center">
                   <button
@@ -213,7 +238,6 @@ export default function BaseDocumentation() {
                 </div>
               )}
 
-              {/* Champs optionnels */}
               {showFullForm && (
                 <div className="space-y-4 border-t pt-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -320,6 +344,42 @@ export default function BaseDocumentation() {
         </div>
       </section>
 
+      {/* Actualités RSS */}
+      {rssArticles.length > 0 && (
+        <section className="py-12 bg-blue-50">
+          <div className="container-custom">
+            <h2 className="text-2xl font-bold mb-6 text-primary">Actualités fiscales officielles</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {rssArticles.slice(0, 3).map((article, index) => (
+                <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{article.title}</CardTitle>
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <CalendarDays className="h-3 w-3 mr-1" />
+                      {new Date(article.pubDate).toLocaleDateString('fr-FR')}
+                      <span className="mx-2">•</span>
+                      <span>{article.source}</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {article.contentSnippet}
+                    </p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button asChild variant="outline" className="w-full">
+                      <a href={article.link} target="_blank" rel="noopener noreferrer">
+                        Lire l'article complet
+                      </a>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Article List */}
       <section className="py-20">
         <div className="container-custom">
@@ -350,7 +410,6 @@ export default function BaseDocumentation() {
                 </CardHeader>
                 <CardContent>
                   <div className="relative h-48 bg-slate-200 rounded-md mb-4">
-                    {/* Image placeholder */}
                     <div className="absolute inset-0 flex items-center justify-center text-gray-400">
                       <span className="text-sm">Image article</span>
                     </div>
@@ -359,7 +418,6 @@ export default function BaseDocumentation() {
                     {article.excerpt}
                   </p>
                   
-                  {/* Resources */}
                   {article.resources && article.resources.length > 0 && (
                     <div className="mb-4">
                       <h4 className="text-sm font-semibold mb-2">Ressources disponibles:</h4>
