@@ -53,6 +53,7 @@ touch backend/.gitignore
 
 #fichier Maj et push
 git status
+q
 git add .
 git commit -m "maj des fichiers"
 git push origin main
