@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, User, Tag, ArrowLeft, FileText, Download } from "lucide-react";
 import { FormEvent, useState, useEffect } from "react";
-import { articles } from "@/lib/articles";
 import { toast } from "react-hot-toast";
 
 interface SubscriptionForm {
@@ -16,11 +15,21 @@ interface SubscriptionForm {
 }
 
 type RSSArticle = {
+  id: string;
   title: string;
   link: string;
   contentSnippet: string;
   pubDate: string;
   source: string;
+  author: string;
+  date: string;
+  excerpt: string;
+  tags: string[];
+  resources?: {
+    name: string;
+    type: string;
+    url: string;
+  }[];
 };
 
 export default function BaseDocumentation() {
@@ -34,24 +43,24 @@ export default function BaseDocumentation() {
   const [loading, setLoading] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [showFullForm, setShowFullForm] = useState(false);
-  const [rssArticles, setRssArticles] = useState<RSSArticle[]>([]);
-  const [loadingRss, setLoadingRss] = useState(true);
+  const [articles, setArticles] = useState<RSSArticle[]>([]);
+  const [loadingArticles, setLoadingArticles] = useState(true);
 
-  // Charger les articles RSS
+  // Charger les articles
   useEffect(() => {
-    const fetchRss = async () => {
+    const fetchArticles = async () => {
       try {
         const res = await fetch('/api/rss');
         const data = await res.json();
-        setRssArticles(data);
+        setArticles(data);
       } catch (err) {
-        console.error('Erreur chargement RSS', err);
-        toast.error('Erreur lors du chargement des actualités');
+        console.error('Erreur chargement articles', err);
+        toast.error('Erreur lors du chargement des articles');
       } finally {
-        setLoadingRss(false);
+        setLoadingArticles(false);
       }
     };
-    fetchRss();
+    fetchArticles();
   }, []);
 
   // Vérifier si l'utilisateur est déjà inscrit
@@ -344,27 +353,41 @@ export default function BaseDocumentation() {
         </div>
       </section>
 
-      {/* Actualités RSS */}
-      {rssArticles.length > 0 && (
+      {/* Actualités RSS 
+       {articles.length > 0 && (
         <section className="py-12 bg-blue-50">
           <div className="container-custom">
             <h2 className="text-2xl font-bold mb-6 text-primary">Actualités fiscales officielles</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rssArticles.slice(0, 3).map((article, index) => (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
+              {articles.slice(0, 3).map((article) => (
+                <Card key={article.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="text-lg">{article.title}</CardTitle>
                     <div className="flex items-center text-xs text-muted-foreground">
                       <CalendarDays className="h-3 w-3 mr-1" />
-                      {new Date(article.pubDate).toLocaleDateString('fr-FR')}
+                      {article.date}
                       <span className="mx-2">•</span>
-                      <span>{article.source}</span>
+                      <User className="h-3 w-3 mr-1" />
+                      {article.author}
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {article.contentSnippet}
+                    <div className="relative h-48 bg-slate-200 rounded-md mb-4">
+                      <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                        <span className="text-sm">Source: {article.source}</span>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground mb-4">
+                      {article.excerpt}
                     </p>
+                    <div className="flex flex-wrap gap-2">
+                      {article.tags.map((tag) => (
+                        <div key={`${article.id}-tag-${tag}`} className="flex items-center text-xs rounded-full px-2 py-1 bg-primary/10 text-primary">
+                          <Tag className="h-3 w-3 mr-1" />
+                          {tag}
+                        </div>
+                      ))}
+                    </div>
                   </CardContent>
                   <CardFooter>
                     <Button asChild variant="outline" className="w-full">
@@ -378,7 +401,7 @@ export default function BaseDocumentation() {
             </div>
           </div>
         </section>
-      )}
+      )} */}
 
       {/* Article List */}
       <section className="py-20">
@@ -392,69 +415,77 @@ export default function BaseDocumentation() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {articles.map((article) => (
-              <Card key={article.id} className="shadow-md hover:shadow-xl transition-shadow">
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <CalendarDays className="h-3 w-3 mr-1" />
-                      {article.date}
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl mb-2">{article.title}</CardTitle>
-                  <div className="flex items-center text-sm text-muted-foreground mb-3">
-                    <User className="h-3 w-3 mr-1" />
-                    {article.author}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="relative h-48 bg-slate-200 rounded-md mb-4">
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                      <span className="text-sm">Image article</span>
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground mb-4">
-                    {article.excerpt}
-                  </p>
-                  
-                  {article.resources && article.resources.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-semibold mb-2">Ressources disponibles:</h4>
-                      <ul className="space-y-1">
-                        {article.resources.map((resource, idx) => (
-                          <li key={`${article.id}-resource-${idx}`} className="flex items-center text-sm text-primary">
-                            <FileText className="h-3 w-3 mr-1" />
-                            <span>{resource.name}</span>
-                            <span className="text-xs text-muted-foreground ml-1">({resource.type})</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
-                              <Download className="h-3 w-3" />
-                            </Button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {article.tags.map((tag) => (
-                      <div key={`${article.id}-tag-${tag}`} className="flex items-center text-xs rounded-full px-2 py-1 bg-primary/10 text-primary">
-                        <Tag className="h-3 w-3 mr-1" />
-                        {tag}
+          {loadingArticles ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {articles.map((article) => (
+                <Card key={article.id} className="shadow-md hover:shadow-xl transition-shadow">
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <CalendarDays className="h-3 w-3 mr-1" />
+                        {article.date}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href={`/nos-actualites/base-de-documentation/${article.id}`}>
-                      Lire l'article
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+                    </div>
+                    <CardTitle className="text-xl mb-2">{article.title}</CardTitle>
+                    <div className="flex items-center text-sm text-muted-foreground mb-3">
+                      <User className="h-3 w-3 mr-1" />
+                      {article.author}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="relative h-48 bg-slate-200 rounded-md mb-4">
+                      <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                        <span className="text-sm">Source: {article.source}</span>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground mb-4">
+                      {article.excerpt}
+                    </p>
+                    
+                    {article.resources && article.resources.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-semibold mb-2">Ressources disponibles:</h4>
+                        <ul className="space-y-1">
+                          {article.resources.map((resource, idx) => (
+                            <li key={`${article.id}-resource-${idx}`} className="flex items-center text-sm text-primary">
+                              <FileText className="h-3 w-3 mr-1" />
+                              <span>{resource.name}</span>
+                              <span className="text-xs text-muted-foreground ml-1">({resource.type})</span>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
+                                <a href={resource.url} download>
+                                  <Download className="h-3 w-3" />
+                                </a>
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {article.tags.map((tag) => (
+                        <div key={`${article.id}-tag-${tag}`} className="flex items-center text-xs rounded-full px-2 py-1 bg-primary/10 text-primary">
+                          <Tag className="h-3 w-3 mr-1" />
+                          {tag}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button asChild variant="outline" className="w-full">
+                      <a href={article.link} target="_blank" rel="noopener noreferrer">
+                        Lire l'article complet
+                      </a>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

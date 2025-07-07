@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { Send, MessageCircle, X, Lightbulb, ChevronUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface ChatMsg {
   from: "user" | "bot";
@@ -17,7 +16,7 @@ const FAQ: { question: string; answer: string }[] = [
   {
     question: "Quels sont vos horaires ?",
     answer:
-      "Le cabinet est ouvert du lundi au vendredi, de 8h30 à 18h. Nous sommes fermés le week-end sauf rendez-vous exceptionnels."
+      "Le cabinet est ouvert du lundi au vendredi, de 9h à 18h. Nous sommes fermés le week-end sauf rendez-vous exceptionnels."
   },
   {
     question: "Quels services proposez-vous ?",
@@ -158,6 +157,23 @@ function searchFAQ(question: string) {
 
 const SUGGESTIONS = FAQ.map(obj => obj.question).slice(0, 6);
 
+// Composant pour l'animation des points de frappe
+function TypingIndicator() {
+  return (
+    <div className="mb-2 flex justify-start">
+      <div className="bg-white text-gray-900 border border-gray-200 rounded-lg rounded-bl-none px-3 py-2 shadow">
+        <div className="flex items-center space-x-1">
+          <div className="flex space-x-1">
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ChatbotWidget() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -172,51 +188,49 @@ export default function ChatbotWidget() {
   const checkScroll = () => {
     if (!containerRef.current) return;
     
-    const scrolled = containerRef.current.scrollTop;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
     const threshold = 100;
     
-    if (scrolled > threshold) {
-      setShowScrollTop(true);
-    } else {
-      setShowScrollTop(false);
-    }
+    // Afficher le bouton si on a fait défiler de plus de 100px du haut
+    setShowScrollTop(scrollTop > threshold);
   };
 
+  // Auto-scroll vers le bas pour les nouveaux messages
   useEffect(() => {
-    // Défilement vers le bas quand de nouveaux messages sont ajoutés
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    
-    // Ajuster le défilement après 3 questions
-    if (questionCount >= 3 && containerRef.current) {
-      setTimeout(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [msgs, open, questionCount]);
+  }, [msgs, loading]);
 
+  // Configurer l'écouteur d'événements de défilement
   useEffect(() => {
-    // Configurer l'écouteur d'événements de défilement
     const container = containerRef.current;
     if (!container) return;
     
-    container.addEventListener('scroll', checkScroll);
+    const handleScroll = () => checkScroll();
+    container.addEventListener('scroll', handleScroll);
     
-    // Nettoyage
+    // Vérifier immédiatement après l'ouverture
+    if (open) {
+      setTimeout(handleScroll, 100);
+    }
+    
     return () => {
-      container.removeEventListener('scroll', checkScroll);
+      container.removeEventListener('scroll', handleScroll);
     };
-  }, [open]); // Réattacher l'écouteur quand le chat est ouvert/fermé
+  }, [open]);
 
   // Fonction pour remonter en haut
   const scrollToTop = () => {
-    containerRef.current?.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    if (containerRef.current) {
+      containerRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
   };
 
-  function sendMessage(e?: React.FormEvent) {
-    if (e) e.preventDefault();
+  function sendMessage() {
     const question = input.trim();
     if (!question) return;
     
@@ -225,6 +239,7 @@ export default function ChatbotWidget() {
     setLoading(true);
     setQuestionCount(prev => prev + 1);
     
+    // Simule le temps de réponse du bot avec animation
     setTimeout(() => {
       const found = searchFAQ(question);
       setMsgs(m => [
@@ -234,17 +249,17 @@ export default function ChatbotWidget() {
           : {
               from: "bot",
               text:
-                "Désolé, je n'ai pas trouvé de réponse dans la FAQ. <br />Vous pouvez consulter les pages dédiées ou <a class='underline text-primary' href='/nous-contacter'>nous contacter</a>."
+                "Désolé, je ne peux répondre à cette question. <br />Vous pouvez consulter les pages dédiées ou <a class='underline text-blue-600 hover:text-blue-800' href='/nous-contacter'>nous contacter</a>."
             }
       ]);
       setLoading(false);
-    }, 400);
+    }, 1500); // Temps d'attente réaliste
   }
 
   function handleSuggestion(s: string) {
     setInput(s);
     setTimeout(() => {
-      sendMessage(undefined);
+      sendMessage();
     }, 10);
   }
 
@@ -259,8 +274,8 @@ export default function ChatbotWidget() {
   if (!open) {
     return (
       <button
-        aria-label="Ouvrir la FAQ chatbot FINGEC"
-        className="fixed z-50 bottom-4 right-4 bg-primary text-white rounded-full shadow-lg p-4 flex items-center hover:scale-105 transition-transform"
+        aria-label="Discuter avec le bot FINGEC"
+        className="fixed z-50 bottom-4 right-4 bg-blue-600 text-white rounded-full shadow-lg p-4 flex items-center hover:scale-105 transition-transform hover:bg-blue-700"
         onClick={() => setOpen(true)}
       >
         <MessageCircle className="w-6 h-6" />
@@ -270,13 +285,17 @@ export default function ChatbotWidget() {
 
   // Fenêtre chatbot
   return (
-    <div className="fixed z-50 bottom-4 right-4 w-full max-w-xs sm:max-w-sm rounded-2xl border border-primary bg-white shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed z-50 bottom-4 right-4 w-full max-w-xs sm:max-w-sm h-96 rounded-2xl border border-blue-200 bg-white shadow-2xl flex flex-col overflow-hidden">
       {/* Header avec bouton de fermeture toujours accessible */}
-      <div className="flex items-center justify-between p-3 bg-primary/90 sticky top-0 z-10">
-        <div className="font-bold text-white select-none">FINGEC — FAQ</div>
+      <div className="flex items-center justify-between p-3 bg-blue-600 text-white sticky top-0 z-10">
+        <div className="font-bold select-none">FINGEC - BOT</div>
         <div className="flex items-center gap-2">
           {questionCount >= 3 && (
-            <button onClick={resetChat} aria-label="Réinitialiser" className="text-white p-1 rounded hover:bg-primary/60">
+            <button 
+              onClick={resetChat} 
+              aria-label="Réinitialiser" 
+              className="text-white p-1 rounded hover:bg-blue-700 transition-colors"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                 <path d="M3 3v5h5" />
@@ -285,31 +304,43 @@ export default function ChatbotWidget() {
               </svg>
             </button>
           )}
-          <button onClick={() => setOpen(false)} aria-label="Fermer" className="text-white p-1 rounded hover:bg-primary/60">
+          <button 
+            onClick={() => setOpen(false)} 
+            aria-label="Fermer" 
+            className="text-white p-1 rounded hover:bg-blue-700 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
       </div>
       
-      {/* Container de messages avec position relative pour le positionnement absolu du bouton */}
-      <div className="relative flex-1 h-72">
-        {/* Conteneur des messages avec événement de défilement */}
+      {/* Container de messages avec position relative */}
+      <div className="relative flex-1 overflow-hidden">
+        {/* Zone de messages scrollable */}
         <div 
           ref={containerRef}
           className="h-full w-full p-3 overflow-y-auto bg-gray-50 text-sm"
+          style={{ 
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#cbd5e1 #f1f5f9'
+          }}
         >
           {msgs.map((m, idx) => (
             <div key={idx} className={`mb-2 flex ${m.from === "user" ? "justify-end" : "justify-start"}`}>
               <div
-                className={`rounded-lg px-3 py-2 max-w-[85%] whitespace-pre-line shadow ${
+                className={`rounded-lg px-3 py-2 max-w-[85%] whitespace-pre-line shadow-sm ${
                   m.from === "user"
-                    ? "bg-primary text-white rounded-br-none"
+                    ? "bg-blue-600 text-white rounded-br-none"
                     : "bg-white text-gray-900 border border-gray-200 rounded-bl-none"
                 }`}
                 dangerouslySetInnerHTML={{ __html: m.text }}
               />
             </div>
           ))}
+          
+          {/* Indicateur de frappe */}
+          {loading && <TypingIndicator />}
+          
           <div ref={chatEndRef} />
         </div>
         
@@ -317,7 +348,7 @@ export default function ChatbotWidget() {
         {showScrollTop && (
           <button 
             onClick={scrollToTop}
-            className="absolute bottom-4 right-4 bg-primary text-white rounded-full p-2 shadow-md hover:bg-primary/80 transition-all z-20"
+            className="absolute bottom-4 right-4 bg-blue-600 text-white rounded-full p-2 shadow-lg hover:bg-blue-700 transition-all z-20 hover:scale-110"
             aria-label="Remonter en haut"
           >
             <ChevronUp className="w-4 h-4" />
@@ -326,28 +357,26 @@ export default function ChatbotWidget() {
       </div>
       
       {/* Suggestions rapides */}
-      <div className="px-3 pb-2 flex flex-wrap gap-2">
+      <div className="px-3 pb-2 flex flex-wrap gap-1 max-h-20 overflow-y-auto">
         {SUGGESTIONS.map(s => (
           <button
             key={s}
-            className="flex items-center gap-1 py-1 px-3 border rounded-lg text-xs hover:bg-primary/10 bg-white"
+            className="flex items-center gap-1 py-1 px-2 border rounded-full text-xs hover:bg-blue-50 bg-white transition-colors border-blue-200 hover:border-blue-300"
             onClick={() => handleSuggestion(s)}
           >
-            <Lightbulb className="w-3 h-3 text-yellow-400" /> {s}
+            <Lightbulb className="w-3 h-3 text-yellow-500" /> 
+            <span className="truncate max-w-32">{s}</span>
           </button>
         ))}
       </div>
       
       {/* Footer / Input */}
-      <form
-        onSubmit={sendMessage}
-        className="flex items-center border-t border-gray-200 bg-white px-2 py-2 gap-2 sticky bottom-0"
-      >
+      <div className="flex items-center border-t border-gray-200 bg-white px-2 py-2 gap-2">
         <input
           disabled={loading}
-          className="flex-1 rounded-md border px-2 py-1 text-sm ring-0 outline-none"
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100"
           type="text"
-          placeholder="Écrivez votre question ou cliquez sur une suggestion…"
+          placeholder="Écrivez votre question..."
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => {
@@ -357,12 +386,21 @@ export default function ChatbotWidget() {
             }
           }}
         />
-        <Button type="submit" size="icon" disabled={!input.trim() || loading} className="bg-primary text-white">
+        <button
+          onClick={sendMessage}
+          disabled={!input.trim() || loading}
+          className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
           {loading ? (
-            <svg className="animate-spin w-4 h-4 mx-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /></svg>
-          ) : <Send className="w-4 h-4" />}
-        </Button>
-      </form>
+            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" className="opacity-25" />
+              <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+          ) : (
+            <Send className="w-4 h-4" />
+          )}
+        </button>
+      </div>
     </div>
   );
-}  
+}
