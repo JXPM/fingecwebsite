@@ -58,5 +58,8 @@ git commit -m "maj des fichiers"
 git push origin main
 
 # nouvelle branche
-git checkout -b "backend"
-git push origin "backend"
+git checkout "backend"
+git push origin "backend
+
+git branch
+git checkout main
