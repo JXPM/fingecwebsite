@@ -3,7 +3,20 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, User, Tag, ArrowLeft, FileText, Download } from "lucide-react";
+import { 
+  CalendarDays, 
+  User, 
+  Tag, 
+  ArrowLeft, 
+  FileText, 
+  Download, 
+  Filter,
+  Briefcase,
+  Building2,
+  Users,
+  Landmark,
+  Info
+} from "lucide-react";
 import { FormEvent, useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 
@@ -25,12 +38,15 @@ type RSSArticle = {
   date: string;
   excerpt: string;
   tags: string[];
+  category: string;
   resources?: {
     name: string;
     type: string;
     url: string;
   }[];
 };
+
+type ArticleCategory = 'PROFESSIONNEL' | 'PARTICULIER' | 'COLLECTIVITE' | 'SOCIAL' | 'FISCAL' | 'TOUS';
 
 export default function BaseDocumentation() {
   const [formData, setFormData] = useState<SubscriptionForm>({
@@ -45,14 +61,19 @@ export default function BaseDocumentation() {
   const [showFullForm, setShowFullForm] = useState(false);
   const [articles, setArticles] = useState<RSSArticle[]>([]);
   const [loadingArticles, setLoadingArticles] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<ArticleCategory>('TOUS');
+  const [showFilters, setShowFilters] = useState(false);
 
-  // Charger les articles
   useEffect(() => {
     const fetchArticles = async () => {
       try {
         const res = await fetch('/api/rss');
         const data = await res.json();
-        setArticles(data);
+        const categorizedData = data.map((article: RSSArticle) => ({
+          ...article,
+          category: getRandomCategory(article.title)
+        }));
+        setArticles(categorizedData);
       } catch (err) {
         console.error('Erreur chargement articles', err);
         toast.error('Erreur lors du chargement des articles');
@@ -63,29 +84,41 @@ export default function BaseDocumentation() {
     fetchArticles();
   }, []);
 
-  // Vérifier si l'utilisateur est déjà inscrit
+  const getRandomCategory = (title: string): string => {
+    if (title.includes('TVA') || title.includes('BIC')) return 'PROFESSIONNEL';
+    if (title.includes('taxes d\'urbanisme')) return 'COLLECTIVITE';
+    if (title.includes('cession de droits sociaux')) return 'PARTICULIER';
+    if (title.includes('Solidarité fiscale')) return 'PARTICULIER';
+    if (title.includes('BOSS')) return 'SOCIAL';
+    if (title.includes('BoFip')) return 'FISCAL';
+    
+    const categories = ['PROFESSIONNEL', 'PARTICULIER', 'COLLECTIVITE', 'SOCIAL', 'FISCAL'];
+    return categories[Math.floor(Math.random() * categories.length)];
+  };
+
+  const filteredArticles = selectedCategory === 'TOUS' 
+    ? articles 
+    : articles.filter(article => 
+        article.category.includes(selectedCategory) || 
+        (selectedCategory === 'SOCIAL' && article.source === 'BOSS') ||
+        (selectedCategory === 'FISCAL' && article.source === 'BoFip')
+      );
+
+  const groupedArticles = filteredArticles.reduce((acc, article) => {
+    const category = article.category;
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(article);
+    return acc;
+  }, {} as Record<string, RSSArticle[]>);
+
   useEffect(() => {
     const isSubscribed = localStorage.getItem('newsletter_subscribed_base-documentation');
     if (isSubscribed) {
       setSubscribed(true);
     }
   }, []);
-
-  // Inscription aux notifications push (optionnel)
-  useEffect(() => {
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      registerServiceWorker();
-    }
-  }, []);
-
-  const registerServiceWorker = async () => {
-    try {
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker enregistré:', registration);
-    } catch (error) {
-      console.error('Erreur Service Worker:', error);
-    }
-  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -125,14 +158,9 @@ export default function BaseDocumentation() {
       const result = await response.json();
 
       if (result.success) {
-        toast.success('Inscription réussie ! Vérifiez votre email.');
+        toast.success('Inscription réussie !');
         setSubscribed(true);
         localStorage.setItem('newsletter_subscribed_base-documentation', 'true');
-        
-        // Demander permission pour notifications push
-        await requestNotificationPermission(result.subscriberId);
-        
-        // Reset form
         setFormData({
           email: '',
           nom: '',
@@ -147,38 +175,6 @@ export default function BaseDocumentation() {
       toast.error('Erreur de connexion. Veuillez réessayer.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const requestNotificationPermission = async (subscriberId: number) => {
-    if ('Notification' in window && 'serviceWorker' in navigator) {
-      const permission = await Notification.requestPermission();
-      
-      if (permission === 'granted') {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-          });
-
-          // Envoyer les détails au serveur
-          await fetch('/api/newsletter/push-subscribe', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              subscriberId,
-              subscription
-            }),
-          });
-
-          toast.success('Notifications activées !');
-        } catch (error) {
-          console.error('Erreur notifications push:', error);
-        }
-      }
     }
   };
 
@@ -198,7 +194,7 @@ export default function BaseDocumentation() {
                   Vous êtes inscrit à notre newsletter !
                 </h3>
                 <p className="text-green-700 text-lg">
-                  Merci pour votre inscription. Vous recevrez nos actualités de la base documentaire par email et notifications push.
+                  Merci pour votre inscription. Vous recevrez nos actualités par email.
                 </p>
               </div>
             </div>
@@ -214,7 +210,7 @@ export default function BaseDocumentation() {
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold mb-4 text-dark">Restez informé des actualités</h2>
               <p className="mb-8 text-muted-foreground">
-                Inscrivez-vous à notre newsletter pour recevoir nos dernières publications et veilles juridiques de la base documentaire.
+                Inscrivez-vous à notre newsletter pour recevoir nos dernières publications.
               </p>
             </div>
 
@@ -329,7 +325,7 @@ export default function BaseDocumentation() {
               </div>
 
               <p className="text-sm text-center text-muted-foreground">
-                En vous inscrivant, vous acceptez de recevoir nos communications. Vous pourrez vous désinscrire à tout moment.
+                En vous inscrivant, vous acceptez de recevoir nos communications.
               </p>
             </form>
           </div>
@@ -344,145 +340,150 @@ export default function BaseDocumentation() {
       <section className="bg-gray-50 py-20">
         <div className="container-custom">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="heading-primary mb-6">Base de documentation</h1>
+            <h1 className="heading-primary mb-6">Actualités fiscales & sociales</h1>
             <p className="text-lg text-muted-foreground mb-8">
               Consultez notre sélection d'articles, guides et ressources pour vous tenir informé
               des actualités juridiques, comptables, fiscales et sociales.
             </p>
+            
+            <div className="flex justify-center gap-4 mb-8">
+              <Button 
+                onClick={() => setShowFilters(!showFilters)}
+                variant={showFilters ? "default" : "outline"}
+                className="flex items-center gap-2"
+              >
+                <Filter className="h-4 w-4" />
+                {showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
+              </Button>
+            </div>
+            
+            {showFilters && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-center mb-4">Filtrer par catégorie</h3>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button
+                    variant={selectedCategory === 'TOUS' ? 'default' : 'outline'}
+                    onClick={() => setSelectedCategory('TOUS')}
+                    className="flex items-center gap-2"
+                  >
+                    <Tag className="h-4 w-4" />
+                    Tous
+                  </Button>
+                  <Button
+                    variant={selectedCategory === 'FISCAL' ? 'default' : 'outline'}
+                    onClick={() => setSelectedCategory('FISCAL')}
+                    className="flex items-center gap-2"
+                  >
+                    <Landmark className="h-4 w-4" />
+                    Fiscal
+                  </Button>
+                  <Button
+                    variant={selectedCategory === 'SOCIAL' ? 'default' : 'outline'}
+                    onClick={() => setSelectedCategory('SOCIAL')}
+                    className="flex items-center gap-2"
+                  >
+                    <Users className="h-4 w-4" />
+                    Social
+                  </Button>
+                  <Button
+                    variant={selectedCategory === 'PROFESSIONNEL' ? 'default' : 'outline'}
+                    onClick={() => setSelectedCategory('PROFESSIONNEL')}
+                    className="flex items-center gap-2"
+                  >
+                    <Briefcase className="h-4 w-4" />
+                    Professionnels
+                  </Button>
+                  <Button
+                    variant={selectedCategory === 'PARTICULIER' ? 'default' : 'outline'}
+                    onClick={() => setSelectedCategory('PARTICULIER')}
+                    className="flex items-center gap-2"
+                  >
+                    <User className="h-4 w-4" />
+                    Particuliers
+                  </Button>
+                  <Button
+                    variant={selectedCategory === 'COLLECTIVITE' ? 'default' : 'outline'}
+                    onClick={() => setSelectedCategory('COLLECTIVITE')}
+                    className="flex items-center gap-2"
+                  >
+                    <Building2 className="h-4 w-4" />
+                    Collectivités
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Actualités RSS 
-       {articles.length > 0 && (
-        <section className="py-12 bg-blue-50">
-          <div className="container-custom">
-            <h2 className="text-2xl font-bold mb-6 text-primary">Actualités fiscales officielles</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {articles.slice(0, 3).map((article) => (
-                <Card key={article.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{article.title}</CardTitle>
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <CalendarDays className="h-3 w-3 mr-1" />
-                      {article.date}
-                      <span className="mx-2">•</span>
-                      <User className="h-3 w-3 mr-1" />
-                      {article.author}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="relative h-48 bg-slate-200 rounded-md mb-4">
-                      <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                        <span className="text-sm">Source: {article.source}</span>
-                      </div>
-                    </div>
-                    <p className="text-muted-foreground mb-4">
-                      {article.excerpt}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {article.tags.map((tag) => (
-                        <div key={`${article.id}-tag-${tag}`} className="flex items-center text-xs rounded-full px-2 py-1 bg-primary/10 text-primary">
-                          <Tag className="h-3 w-3 mr-1" />
-                          {tag}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button asChild variant="outline" className="w-full">
-                      <a href={article.link} target="_blank" rel="noopener noreferrer">
-                        Lire l'article complet
-                      </a>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-      )} */}
-
       {/* Article List */}
-      <section className="py-20">
+      <section className="py-12">
         <div className="container-custom">
-          <div className="flex mb-8">
-            <Button asChild variant="ghost" className="flex items-center text-muted-foreground">
-              <Link href="/nos-actualites">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Retour aux actualités
-              </Link>
-            </Button>
-          </div>
-
           {loadingArticles ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {articles.map((article) => (
-                <Card key={article.id} className="shadow-md hover:shadow-xl transition-shadow">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <CalendarDays className="h-3 w-3 mr-1" />
-                        {article.date}
-                      </div>
-                    </div>
-                    <CardTitle className="text-xl mb-2">{article.title}</CardTitle>
-                    <div className="flex items-center text-sm text-muted-foreground mb-3">
-                      <User className="h-3 w-3 mr-1" />
-                      {article.author}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="relative h-48 bg-slate-200 rounded-md mb-4">
-                      <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                        <span className="text-sm">Source: {article.source}</span>
-                      </div>
-                    </div>
-                    <p className="text-muted-foreground mb-4">
-                      {article.excerpt}
-                    </p>
-                    
-                    {article.resources && article.resources.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-semibold mb-2">Ressources disponibles:</h4>
-                        <ul className="space-y-1">
-                          {article.resources.map((resource, idx) => (
-                            <li key={`${article.id}-resource-${idx}`} className="flex items-center text-sm text-primary">
-                              <FileText className="h-3 w-3 mr-1" />
-                              <span>{resource.name}</span>
-                              <span className="text-xs text-muted-foreground ml-1">({resource.type})</span>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
-                                <a href={resource.url} download>
-                                  <Download className="h-3 w-3" />
-                                </a>
-                              </Button>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {article.tags.map((tag) => (
-                        <div key={`${article.id}-tag-${tag}`} className="flex items-center text-xs rounded-full px-2 py-1 bg-primary/10 text-primary">
-                          <Tag className="h-3 w-3 mr-1" />
-                          {tag}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button asChild variant="outline" className="w-full">
-                      <a href={article.link} target="_blank" rel="noopener noreferrer">
-                        Lire l'article complet
-                      </a>
-                    </Button>
-                  </CardFooter>
-                </Card>
+            <div className="space-y-12">
+              {Object.entries(groupedArticles).map(([category, categoryArticles]) => (
+                <div key={category} className="space-y-6">
+                  <h2 className="text-2xl font-bold border-b pb-2 flex items-center gap-2">
+                    {category === 'PROFESSIONNEL' && <Briefcase className="h-5 w-5 text-blue-600" />}
+                    {category === 'PARTICULIER' && <User className="h-5 w-5 text-green-600" />}
+                    {category === 'COLLECTIVITE' && <Building2 className="h-5 w-5 text-purple-600" />}
+                    {category === 'SOCIAL' && <Users className="h-5 w-5 text-orange-600" />}
+                    {category === 'FISCAL' && <Landmark className="h-5 w-5 text-red-600" />}
+                    À LA UNE {category}
+                  </h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {categoryArticles.map((article) => (
+                      <Card key={article.id} className="hover:shadow-lg transition-shadow">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <CalendarDays className="h-3 w-3 mr-1" />
+                              {article.date}
+                            </div>
+                          </div>
+                          <CardTitle className="text-lg mb-2">{article.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-muted-foreground mb-4 line-clamp-3">
+                            {article.excerpt || article.contentSnippet}
+                          </p>
+                          
+                          {article.resources && article.resources.length > 0 && (
+                            <div className="mb-4">
+                              <h4 className="text-sm font-semibold mb-2">Ressources disponibles:</h4>
+                              <ul className="space-y-1">
+                                {article.resources.map((resource, idx) => (
+                                  <li key={`${article.id}-resource-${idx}`} className="flex items-center text-sm text-primary">
+                                    <FileText className="h-3 w-3 mr-1" />
+                                    <span>{resource.name}</span>
+                                    <span className="text-xs text-muted-foreground ml-1">({resource.type})</span>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
+                                      <a href={resource.url} download>
+                                        <Download className="h-3 w-3" />
+                                      </a>
+                                    </Button>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </CardContent>
+                        <CardFooter>
+                          <Button asChild variant="outline" className="w-full">
+                            <a href={article.link} target="_blank" rel="noopener noreferrer">
+                              Lire l'article complet
+                            </a>
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}

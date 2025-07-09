@@ -273,9 +273,9 @@ export default function ChatbotWidget() {
   // Bubble (si fermé)
   if (!open) {
     return (
-      <button
+      <button 
         aria-label="Discuter avec le bot FINGEC"
-        className="fixed z-50 bottom-4 right-4 bg-blue-600 text-white rounded-full shadow-lg p-4 flex items-center hover:scale-105 transition-transform hover:bg-blue-700"
+        className="fixed z-50 bottom-4 right-4 bg-primary text-white rounded-full shadow-lg p-4 flex items-center hover:scale-105 transition-transform hover:bg-primary-700"
         onClick={() => setOpen(true)}
       >
         <MessageCircle className="w-6 h-6" />
@@ -285,16 +285,16 @@ export default function ChatbotWidget() {
 
   // Fenêtre chatbot
   return (
-    <div className="fixed z-50 bottom-4 right-4 w-full max-w-xs sm:max-w-sm h-96 rounded-2xl border border-blue-200 bg-white shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed z-50 bottom-4 right-4 w-full max-w-xs sm:max-w-sm h-96 rounded-2xl border border-primary bg-white shadow-2xl flex flex-col overflow-hidden">
       {/* Header avec bouton de fermeture toujours accessible */}
-      <div className="flex items-center justify-between p-3 bg-blue-600 text-white sticky top-0 z-10">
+      <div className="flex items-center justify-between p-3 bg-primary text-white sticky top-0 z-10">
         <div className="font-bold select-none">FINGEC - BOT</div>
         <div className="flex items-center gap-2">
           {questionCount >= 3 && (
             <button 
               onClick={resetChat} 
               aria-label="Réinitialiser" 
-              className="text-white p-1 rounded hover:bg-blue-700 transition-colors"
+              className="text-white p-1 rounded hover:bg-primary transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -307,7 +307,7 @@ export default function ChatbotWidget() {
           <button 
             onClick={() => setOpen(false)} 
             aria-label="Fermer" 
-            className="text-white p-1 rounded hover:bg-blue-700 transition-colors"
+            className="text-white p-1 rounded hover:bg-primary transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -330,7 +330,7 @@ export default function ChatbotWidget() {
               <div
                 className={`rounded-lg px-3 py-2 max-w-[85%] whitespace-pre-line shadow-sm ${
                   m.from === "user"
-                    ? "bg-blue-600 text-white rounded-br-none"
+                    ? "bg-primary text-white rounded-br-none"
                     : "bg-white text-gray-900 border border-gray-200 rounded-bl-none"
                 }`}
                 dangerouslySetInnerHTML={{ __html: m.text }}
@@ -348,7 +348,7 @@ export default function ChatbotWidget() {
         {showScrollTop && (
           <button 
             onClick={scrollToTop}
-            className="absolute bottom-4 right-4 bg-blue-600 text-white rounded-full p-2 shadow-lg hover:bg-blue-700 transition-all z-20 hover:scale-110"
+            className="absolute bottom-4 right-4 bg-primary text-white rounded-full p-2 shadow-lg hover:bg-primary transition-all z-20 hover:scale-110"
             aria-label="Remonter en haut"
           >
             <ChevronUp className="w-4 h-4" />
@@ -361,7 +361,7 @@ export default function ChatbotWidget() {
         {SUGGESTIONS.map(s => (
           <button
             key={s}
-            className="flex items-center gap-1 py-1 px-2 border rounded-full text-xs hover:bg-blue-50 bg-white transition-colors border-blue-200 hover:border-blue-300"
+            className="flex items-center gap-1 py-1 px-2 border rounded-full text-xs hover:bg-secondary-foreground bg-white transition-colors border-primary-foreground hover:border-primary "
             onClick={() => handleSuggestion(s)}
           >
             <Lightbulb className="w-3 h-3 text-yellow-500" /> 
@@ -374,7 +374,7 @@ export default function ChatbotWidget() {
       <div className="flex items-center border-t border-gray-200 bg-white px-2 py-2 gap-2">
         <input
           disabled={loading}
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100"
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-secondary focus:border-secondary-foreground outline-none disabled:bg-gray-100"
           type="text"
           placeholder="Écrivez votre question..."
           value={input}
@@ -389,7 +389,7 @@ export default function ChatbotWidget() {
         <button
           onClick={sendMessage}
           disabled={!input.trim() || loading}
-          className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="bg-primary text-white p-2 rounded-lg hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? (
             <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">

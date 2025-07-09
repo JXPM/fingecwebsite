@@ -1,15 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-const MobileMenu = () => {
+interface MobileMenuProps {
+  onClose?: () => void;
+}
+
+const MobileMenu = ({ onClose }: MobileMenuProps) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+
+  const handleHeaderClick = () => {
+    console.log("Header cliqué !");
+    router.push("/");
+    if (onClose) {
+      onClose();
+    }
+  };
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -24,11 +37,23 @@ const MobileMenu = () => {
 
   return (
     <div className="flex flex-col h-full py-6 px-4">
-      <div className="flex flex-col items-center mb-8">
+      {/* Header avec logo cliquable */}
+      <div 
+        onClick={handleHeaderClick}
+        className="flex flex-col items-center mb-8 cursor-pointer hover:opacity-80 transition-opacity select-none active:scale-95"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleHeaderClick();
+          }
+        }}
+      >
         <div className="text-2xl font-bold text-primary">FINGEC</div>
         <div className="text-sm text-secondary">Ordre des experts comptables d'Alsace</div>
         
-        {/* Logo placeholder in mobile menu */}
+        {/* Logo placeholder */}
         <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mt-4">
           {/* Replace with actual logo */}
           {/* <Image src="/path/to/logo.png" alt="FINGEC Logo" width={56} height={56} /> */}
@@ -45,6 +70,7 @@ const MobileMenu = () => {
               ? "bg-primary/10 text-primary font-medium"
               : "hover:bg-muted"
           )}
+          onClick={onClose}
         >
           Accueil
         </Link>
@@ -79,6 +105,7 @@ const MobileMenu = () => {
                     ? "bg-primary/10 text-primary font-medium"
                     : "hover:bg-muted"
                 )}
+                onClick={onClose}
               >
                 Comptabilité et gestion
               </Link>
@@ -90,6 +117,7 @@ const MobileMenu = () => {
                     ? "bg-primary/10 text-primary font-medium"
                     : "hover:bg-muted"
                 )}
+                onClick={onClose}
               >
                 Conseil et assistance juridique
               </Link>
@@ -101,6 +129,7 @@ const MobileMenu = () => {
                     ? "bg-primary/10 text-primary font-medium"
                     : "hover:bg-muted"
                 )}
+                onClick={onClose}
               >
                 Social
               </Link>
@@ -108,53 +137,18 @@ const MobileMenu = () => {
           )}
         </div>
 
-        {/* Nos actualités */}
-        <div>
-          <Button
-            variant="ghost"
-            className={cn(
-              "w-full justify-between py-2 px-3",
-              isActive("/nos-actualites")
-                ? "bg-primary/10 text-primary font-medium"
-                : "hover:bg-muted"
-            )}
-            onClick={() => toggleSubmenu("actualites")}
-          >
-            Nos actualités
-            {openSubmenu === "actualites" ? (
-              <ChevronDown className="h-4 w-4 ml-2" />
-            ) : (
-              <ChevronRight className="h-4 w-4 ml-2" />
-            )}
-          </Button>
-
-          {openSubmenu === "actualites" && (
-            <div className="pl-4 space-y-2 mt-2">
-              <Link
-                href="/nos-actualites/vie-du-cabinet"
-                className={cn(
-                  "block py-2 px-3 rounded-md transition-colors",
-                  isActive("/nos-actualites/vie-du-cabinet")
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "hover:bg-muted"
-                )}
-              >
-                Vie du cabinet
-              </Link>
-              <Link
-                href="/nos-actualites/base-de-documentation"
-                className={cn(
-                  "block py-2 px-3 rounded-md transition-colors",
-                  isActive("/nos-actualites/base-de-documentation")
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "hover:bg-muted"
-                )}
-              >
-                Base de documentation
-              </Link>
-            </div>
+        <Link
+          href="/nos-actualites/base-de-documentation"
+          className={cn(
+            "block py-2 px-3 rounded-md transition-colors",
+            isActive("nos-actualites/base-de-documentation")
+              ? "bg-primary/10 text-primary font-medium"
+              : "hover:bg-muted"
           )}
-        </div>
+          onClick={onClose}
+        >
+          Actualités fiscales & sociales
+        </Link>
 
         <Link
           href="/nous-rejoindre"
@@ -164,6 +158,7 @@ const MobileMenu = () => {
               ? "bg-primary/10 text-primary font-medium"
               : "hover:bg-muted"
           )}
+          onClick={onClose}
         >
           Nous rejoindre
         </Link>
@@ -176,6 +171,7 @@ const MobileMenu = () => {
               ? "bg-primary/10 text-primary font-medium"
               : "hover:bg-muted"
           )}
+          onClick={onClose}
         >
           Nous contacter
         </Link>
@@ -188,6 +184,7 @@ const MobileMenu = () => {
               ? "bg-primary/10 text-primary font-medium"
               : "hover:bg-muted"
           )}
+          onClick={onClose}
         >
           Outils & Liens utiles
         </Link>
@@ -195,7 +192,7 @@ const MobileMenu = () => {
 
       <div className="mt-auto pt-6">
         <Button asChild variant="default" className="w-full">
-          <Link href="/nous-contacter">
+          <Link href="/nous-contacter" onClick={onClose}>
             Prendre rendez-vous
           </Link>
         </Button>

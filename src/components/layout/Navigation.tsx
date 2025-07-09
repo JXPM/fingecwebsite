@@ -72,27 +72,16 @@ const Navigation = () => {
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <NavigationMenuTrigger className={isActive("/nos-actualites") ? "bg-muted" : ""}>
-            Nos actualités
-          </NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-1 lg:w-[600px]">
-              <ListItem
-                href="/nos-actualites/vie-du-cabinet"
-                title="Vie du cabinet"
-                isActive={isActive("/nos-actualites/vie-du-cabinet")}
-              >
-                Suivez l'actualité et les événements de notre cabinet.
-              </ListItem>
-              <ListItem
-                href="/nos-actualites/base-de-documentation"
-                title="Base de documentation"
-                isActive={isActive("/nos-actualites/base-de-documentation")}
-              >
-                Ressources et documentation pour vous accompagner.
-              </ListItem>
-            </ul>
-          </NavigationMenuContent>
+          <Link href="/nos-actualites/base-de-documentation" legacyBehavior passHref>
+            <NavigationMenuLink
+              className={cn(
+                navigationMenuTriggerStyle(),
+                isActive("/nos-actualites/base-de-documentation") ? "bg-muted" : ""
+              )}
+            >
+              Actualités fiscales & sociales
+            </NavigationMenuLink>
+          </Link>
         </NavigationMenuItem>
 
         <NavigationMenuItem>

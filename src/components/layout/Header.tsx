@@ -11,6 +11,7 @@ import MobileMenu from "./MobileMenu";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,6 +22,10 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleSheetClose = () => {
+    setIsSheetOpen(false);
+  };
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -30,14 +35,16 @@ const Header = () => {
       }`}
     >
       <div className="container-custom flex items-center justify-between px-0 w-full max-w-full">
-        {/* FINGEC Title - Left Section */}
+        {/* FINGEC Title - Left Section - Maintenant cliquable */}
         <div className="flex flex-col items-start pl-9">
-          <div className="font-bold text-5xl text-primary tracking-tighter">
-            FINGEC
-          </div>
-          <div className="text-xs text-secondary hidden md:block">
-            Ordre des experts comptables d'Alsace
-          </div>
+          <Link href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
+            <div className="font-bold text-5xl text-primary tracking-tighter">
+              FINGEC
+            </div>
+            <div className="text-xs text-secondary hidden md:block">
+              Ordre des experts comptables d'Alsace
+            </div>
+          </Link>
         </div>
         
         {/* Navigation - Centered Section */}
@@ -63,7 +70,7 @@ const Header = () => {
 
         {/* Mobile Menu Button - Right Section (Mobile only) */}
         <div className="md:hidden">
-          <Sheet>
+          <Sheet open={isScrolled} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Menu className="h-6 w-6" />
@@ -71,7 +78,7 @@ const Header = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="p-0">
-              <MobileMenu />
+              <MobileMenu onClose={handleSheetClose} />
             </SheetContent>
           </Sheet>
         </div>
