@@ -112,7 +112,7 @@ function searchFAQ(question: string) {
   const q = normalized(question);
   
   // 1. Recherche stricte (correspondance exacte ou inclusion directe)
-  let best = FAQ.find(faq =>
+  const best = FAQ.find(faq =>
     normalized(faq.question) === q ||
     normalized(faq.question).includes(q) ||
     q.includes(normalized(faq.question))

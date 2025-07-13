@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Récupérer les abonnés actifs
     let query = 'SELECT * FROM newsletter_subscribers WHERE statut = "actif"';
-    let params: any[] = [];
+    const params: any[] = [];
 
     if (cible_source) {
       query += ' AND source = ?';
