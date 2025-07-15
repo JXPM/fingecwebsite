@@ -3,6 +3,26 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
+export const runtime = 'edge';
+
+interface RSSItem {
+  id: string;
+  title: string;
+  link: string;
+  pubDate: string;
+  contentSnippet: string;
+  excerpt: string;
+  tags: string[];
+  source: string;
+  date: string;
+  author: string;
+  category?: string;
+  resources?: {
+    name: string;
+    type: string;
+    url: string;
+  }[];
+}
 
 const FEED_URLS = [
   {
@@ -15,74 +35,92 @@ const FEED_URLS = [
   }
 ];
 
-// Fonction pour récupérer et parser les flux
-async function fetchRssFeeds() {
-  const allItems = [];
+async function fetchFeedContent(url: string) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
 
-  for (const feed of FEED_URLS) {
-    const response = await fetch(feed.url);
-    const xmlString = await response.text();
+    const response = await fetch(url, {
+      signal: controller.signal,
+      next: { revalidate: 3600 }
+    });
 
-    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-    const titleRegex = /<title>([\s\S]*?)<\/title>/;
-    const linkRegex = /<link>([\s\S]*?)<\/link>/;
-    const pubDateRegex = /<pubDate>([\s\S]*?)<\/pubDate>/;
-    const descriptionRegex = /<description>([\s\S]*?)<\/description>/;
+    clearTimeout(timeout);
 
-    let match;
-    while ((match = itemRegex.exec(xmlString)) !== null) {
-      const itemContent = match[1];
-      const title = titleRegex.exec(itemContent)?.[1]?.trim() || 'Sans titre';
-      const link = linkRegex.exec(itemContent)?.[1]?.trim() || '#';
-      const pubDate = pubDateRegex.exec(itemContent)?.[1]?.trim() || new Date().toISOString();
-      const description = descriptionRegex.exec(itemContent)?.[1]?.trim() || '';
-      
-      const contentSnippet = description.replace(/<[^>]*>?/gm, '').substring(0, 200) + '...';
-
-      allItems.push({
-        id: `rss-${allItems.length}`,
-        title,
-        link,
-        pubDate,
-        contentSnippet,
-        source: feed.source,
-        author: feed.source,
-        date: new Date(pubDate).toLocaleDateString('fr-FR'),
-        excerpt: contentSnippet,
-        tags: ['Fiscal', 'Officiel'],
-        resources: []
-      });
-    }
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.text();
+  } catch (error) {
+    console.error(`Error fetching ${url}:`, error);
+    return null;
   }
-
-  return allItems.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
 }
 
-// Cache les données pendant 1 heure (optionnel)
-let cachedData: any = null;
-let lastFetchTime = 0;
+function parseRssContent(xmlString: string, source: string): RSSItem[] {
+  const items: RSSItem[] = [];
+  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+  
+  let match;
+  while ((match = itemRegex.exec(xmlString)) !== null) {
+    const itemContent = match[1];
+    const titleMatch = /<title>([\s\S]*?)<\/title>/.exec(itemContent);
+    const linkMatch = /<link>([\s\S]*?)<\/link>/.exec(itemContent);
+    const pubDateMatch = /<pubDate>([\s\S]*?)<\/pubDate>/.exec(itemContent);
+    const descMatch = /<description>([\s\S]*?)<\/description>/.exec(itemContent);
+
+    items.push({
+      id: `rss-${items.length}`,
+      title: titleMatch?.[1]?.trim() || 'Sans titre',
+      link: linkMatch?.[1]?.trim() || '#',
+      pubDate: pubDateMatch?.[1]?.trim() || new Date().toISOString(),
+      contentSnippet: (descMatch?.[1]?.replace(/<[^>]*>?/gm, '')?.substring(0, 200) + '...'),
+      source,
+      author: source, // Utilisez source comme auteur par défaut
+      date: new Date(pubDateMatch?.[1] || Date.now()).toLocaleDateString('fr-FR'),
+      excerpt: (descMatch?.[1]?.replace(/<[^>]*>?/gm, '')?.substring(0, 200) + '...'),
+      tags: ['Fiscal', 'Officiel'],
+      resources: [] // Tableau vide par défaut
+    });
+  }
+
+  return items;
+}
 
 export async function GET() {
   try {
-    // Si les données sont en cache et récentes, on les retourne
-    if (cachedData && Date.now() - lastFetchTime < 3600000) {
-      return NextResponse.json(cachedData.slice(0, 12));
-    }
+    const feedPromises = FEED_URLS.map(async (feed) => {
+      const content = await fetchFeedContent(feed.url);
+      return content ? parseRssContent(content, feed.source) : [];
+    });
 
-    // Sinon, on fetch les données
-    const data = await fetchRssFeeds();
-    cachedData = data;
-    lastFetchTime = Date.now();
-
-    return NextResponse.json(data.slice(0, 12));
-  } catch (error: unknown) {
-    console.error('Erreur de récupération des flux:', error);
-    return NextResponse.json(
-      {
-        error: 'Erreur de récupération des flux RSS',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
+    const results = await Promise.all(feedPromises);
+    const allItems = results.flat().sort((a, b) => 
+      new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
     );
+
+    return new Response(JSON.stringify(allItems.slice(0, 8)), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=1800'
+      }
+    });
+  } catch (error) {
+    console.error('Error processing feeds:', error);
+    
+    return new Response(JSON.stringify([{
+      id: 'error-fallback',
+      title: 'Service temporairement indisponible',
+      contentSnippet: 'Les actualités ne sont pas disponibles pour le moment. Veuillez réessayer plus tard.',
+      source: 'Système',
+      author: 'Administrateur',
+      date: new Date().toLocaleDateString('fr-FR'),
+      excerpt: 'Les flux RSS ne sont pas disponibles pour le moment.',
+      tags: ['Erreur'],
+      resources: []
+    }]), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
   }
 }
