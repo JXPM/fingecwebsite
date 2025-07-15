@@ -1,6 +1,8 @@
+// app/api/rss/route.ts
 import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 const FEED_URLS = [
   {
@@ -13,56 +15,66 @@ const FEED_URLS = [
   }
 ];
 
+// Fonction pour récupérer et parser les flux
+async function fetchRssFeeds() {
+  const allItems = [];
+
+  for (const feed of FEED_URLS) {
+    const response = await fetch(feed.url);
+    const xmlString = await response.text();
+
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    const titleRegex = /<title>([\s\S]*?)<\/title>/;
+    const linkRegex = /<link>([\s\S]*?)<\/link>/;
+    const pubDateRegex = /<pubDate>([\s\S]*?)<\/pubDate>/;
+    const descriptionRegex = /<description>([\s\S]*?)<\/description>/;
+
+    let match;
+    while ((match = itemRegex.exec(xmlString)) !== null) {
+      const itemContent = match[1];
+      const title = titleRegex.exec(itemContent)?.[1]?.trim() || 'Sans titre';
+      const link = linkRegex.exec(itemContent)?.[1]?.trim() || '#';
+      const pubDate = pubDateRegex.exec(itemContent)?.[1]?.trim() || new Date().toISOString();
+      const description = descriptionRegex.exec(itemContent)?.[1]?.trim() || '';
+      
+      const contentSnippet = description.replace(/<[^>]*>?/gm, '').substring(0, 200) + '...';
+
+      allItems.push({
+        id: `rss-${allItems.length}`,
+        title,
+        link,
+        pubDate,
+        contentSnippet,
+        source: feed.source,
+        author: feed.source,
+        date: new Date(pubDate).toLocaleDateString('fr-FR'),
+        excerpt: contentSnippet,
+        tags: ['Fiscal', 'Officiel'],
+        resources: []
+      });
+    }
+  }
+
+  return allItems.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+}
+
+// Cache les données pendant 1 heure (optionnel)
+let cachedData: any = null;
+let lastFetchTime = 0;
+
 export async function GET() {
   try {
-    const allItems = [];
-
-    for (const feed of FEED_URLS) {
-      const response = await fetch(feed.url);
-      const xmlString = await response.text();
-
-      // Expressions régulières pour extraire les infos
-      const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-      const titleRegex = /<title>([\s\S]*?)<\/title>/;
-      const linkRegex = /<link>([\s\S]*?)<\/link>/;
-      const pubDateRegex = /<pubDate>([\s\S]*?)<\/pubDate>/;
-      const descriptionRegex = /<description>([\s\S]*?)<\/description>/;
-
-      let match;
-      while ((match = itemRegex.exec(xmlString)) !== null) {
-        const itemContent = match[1];
-        const title = titleRegex.exec(itemContent)?.[1]?.trim() || 'Sans titre';
-        const link = linkRegex.exec(itemContent)?.[1]?.trim() || '#';
-        const pubDate = pubDateRegex.exec(itemContent)?.[1]?.trim() || new Date().toISOString();
-        const description = descriptionRegex.exec(itemContent)?.[1]?.trim() || '';
-        
-        // Nettoyer la description (supprimer les balises HTML)
-        const contentSnippet = description.replace(/<[^>]*>?/gm, '').substring(0, 200) + '...';
-
-        allItems.push({
-          id: `rss-${allItems.length}`,
-          title,
-          link,
-          pubDate,
-          contentSnippet,
-          source: feed.source,
-          author: feed.source,
-          date: new Date(pubDate).toLocaleDateString('fr-FR'),
-          excerpt: contentSnippet,
-          tags: ['Fiscal', 'Officiel'],
-          resources: []
-        });
-      }
+    // Si les données sont en cache et récentes, on les retourne
+    if (cachedData && Date.now() - lastFetchTime < 3600000) {
+      return NextResponse.json(cachedData.slice(0, 12));
     }
 
-    if (allItems.length === 0) {
-      throw new Error('Aucun article trouvé dans les flux RSS.');
-    }
+    // Sinon, on fetch les données
+    const data = await fetchRssFeeds();
+    cachedData = data;
+    lastFetchTime = Date.now();
 
-    // Trie par date décroissante
-    allItems.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
-
-    return NextResponse.json(allItems.slice(0, 12)); // on limite à 12 résultats
+    return NextResponse.json(data.slice(0, 12));
   } catch (error: unknown) {
     console.error('Erreur de récupération des flux:', error);
     return NextResponse.json(

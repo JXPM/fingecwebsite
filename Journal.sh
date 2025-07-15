@@ -65,3 +65,7 @@ git push origin "backend
 git branch
 
 git checkout main
+
+# Fusionner la branche backend dans main
+git checkout main
+git merge backend --allow-unrelated-histories

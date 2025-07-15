@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ChatbotWidget from "@/components/chat/ChatbotWidget";
+import TarteaucitronInit from "@/components/TarteaucitronInit";
 
 export default function ClientBody({
   children,
@@ -15,17 +16,12 @@ export default function ClientBody({
   const pathname = usePathname();
   const [isFirstMount, setIsFirstMount] = useState(true);
 
-  // Remove any extension-added classes during hydration
   useEffect(() => {
     document.body.className = "antialiased";
-    
-    // Ne pas animer lors du premier chargement
     setIsFirstMount(false);
   }, []);
 
-  // Variantes d'animation différentes selon le type de page
   const getPageVariants = () => {
-    // Animation spécifique pour la page d'accueil
     if (pathname === "/") {
       return {
         hidden: { opacity: 0 },
@@ -33,8 +29,7 @@ export default function ClientBody({
         exit: { opacity: 0 },
       };
     }
-    
-    // Animation pour les pages de services
+
     if (pathname.includes("/notre-savoir-faire")) {
       return {
         hidden: { opacity: 0, x: 100 },
@@ -42,8 +37,7 @@ export default function ClientBody({
         exit: { opacity: 0, x: -100 },
       };
     }
-    
-    // Animation pour les pages de contact
+
     if (pathname.includes("/nous-contacter")) {
       return {
         hidden: { opacity: 0, scale: 0.95 },
@@ -51,8 +45,7 @@ export default function ClientBody({
         exit: { opacity: 0, scale: 1.05 },
       };
     }
-    
-    // Animation par défaut pour les autres pages
+
     return {
       hidden: { opacity: 0, y: 30 },
       enter: { opacity: 1, y: 0 },
@@ -60,7 +53,6 @@ export default function ClientBody({
     };
   };
 
-  // Transitions personnalisées selon le type de page
   const getPageTransition = () => {
     if (pathname === "/") {
       return {
@@ -69,7 +61,7 @@ export default function ClientBody({
         duration: 0.7,
       };
     }
-    
+
     return {
       type: "spring",
       stiffness: 300,
@@ -79,8 +71,12 @@ export default function ClientBody({
   };
 
   return (
-    <body className="antialiased min-h-screen flex flex-col" suppressHydrationWarning>
+<div className="flex flex-col min-h-screen antialiased">
+    {/* Init de Tarteaucitron ici (client-side only) */}
+      <TarteaucitronInit />
+
       <Header />
+
       <main className="flex-grow pt-20">
         <AnimatePresence mode="wait" initial={isFirstMount}>
           <motion.div
@@ -96,9 +92,10 @@ export default function ClientBody({
           </motion.div>
         </AnimatePresence>
       </main>
+
       <Footer />
-      
-      {/* Le ChatbotWidget pourrait bénéficier de sa propre animation */}
+
+      {/* Chatbot animé */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -106,7 +103,7 @@ export default function ClientBody({
       >
         <ChatbotWidget />
       </motion.div>
-      
+
       {/* Overlay de transition (optionnel) */}
       <AnimatePresence>
         {pathname !== "/" && (
@@ -116,20 +113,20 @@ export default function ClientBody({
             animate={{ scaleX: 0 }}
             exit={{ scaleX: 1 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
-            style={{ 
-              position: "fixed", 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0, 
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
               backgroundColor: "var(--primary)",
               transformOrigin: "right",
               zIndex: 9999,
-              pointerEvents: "none"
+              pointerEvents: "none",
             }}
           />
         )}
       </AnimatePresence>
-    </body>
+    </div>
   );
 }
