@@ -15,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -34,8 +34,10 @@
     ".next/types/**/*.ts",
     "build/types/**/*.ts",
     "next-env.d.ts",
-    "out/types/**/*.ts"
-, "src/app/api/newsletter/unsubscribe/[token]/route.ts.disabled"  ],
+    "out/types/**/*.ts",
+    "src/app/api/newsletter/unsubscribe/[token]/route.ts.disabled",
+    ".next/dev/types/**/*.ts"
+  ],
   "exclude": [
     "node_modules"
   ]

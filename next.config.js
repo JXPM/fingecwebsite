@@ -1,15 +1,11 @@
+const path = require("path");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   //output: 'export',
   // distDir: 'out',
-   images: {
+  images: {
      unoptimized: true,
-     domains: [
-       "source.unsplash.com",
-       "images.unsplash.com",
-       "ext.same-assets.com",
-       "ugc.same-assets.com",
-     ],
      remotePatterns: [
        {
          protocol: "https",
@@ -33,12 +29,12 @@ const nextConfig = {
        },
      ],
    },
+  turbopack: {
+    root: path.join(__dirname),
+  },
    typescript: {
      ignoreBuildErrors: true,
    },
-   eslint: {
-     ignoreDuringBuilds: true,
-   },
- };
+};
 
- module.exports =nextConfig
+module.exports = nextConfig;
