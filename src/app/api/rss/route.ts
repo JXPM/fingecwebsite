@@ -36,6 +36,22 @@ const FEED_URLS = [
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const BOSS_FALLBACK_ITEM: RSSItem = {
+  id: "fallback-boss",
+  title: "Actualites BOSS",
+  link: "https://boss.gouv.fr/portail/accueil/actualites-boss-et-rescrits.html",
+  pubDate: new Date().toISOString(),
+  contentSnippet:
+    "Le flux BOSS est temporairement inaccessible depuis notre serveur. Consultez les actualites sociales directement sur le site officiel.",
+  source: "BOSS",
+  author: "BOSS",
+  date: new Date().toLocaleDateString("fr-FR"),
+  excerpt:
+    "Le flux BOSS est temporairement inaccessible depuis notre serveur. Consultez les actualites sociales directement sur le site officiel.",
+  tags: ["Social", "Officiel"],
+  resources: [],
+};
+
 async function fetchFeedContent(url: string, source: string) {
   const maxAttempts = 3;
 
@@ -65,7 +81,15 @@ async function fetchFeedContent(url: string, source: string) {
       const prefix = `[RSS:${source}] tentative ${attempt}/${maxAttempts}`;
 
       if (isLastAttempt) {
-        console.error(`${prefix} - echec final`, error);
+        const causeCode =
+          typeof error === "object" &&
+          error !== null &&
+          "cause" in error &&
+          typeof (error as { cause?: unknown }).cause === "object" &&
+          (error as { cause?: { code?: string } }).cause?.code
+            ? (error as { cause: { code: string } }).cause.code
+            : "UNKNOWN";
+        console.error(`${prefix} - echec final (${causeCode})`);
         return null;
       }
 
@@ -136,6 +160,16 @@ export async function GET() {
         if (dateDiff !== 0) return dateDiff;
         return `${a.source}-${a.title}`.localeCompare(`${b.source}-${b.title}`);
       });
+
+    // Si BOSS est indisponible, on conserve une entree sociale informative.
+    if (!allItems.some((item) => item.source.toUpperCase().includes("BOSS"))) {
+      allItems.push(BOSS_FALLBACK_ITEM);
+      allItems.sort((a, b) => {
+        const dateDiff = new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime();
+        if (dateDiff !== 0) return dateDiff;
+        return `${a.source}-${a.title}`.localeCompare(`${b.source}-${b.title}`);
+      });
+    }
 
     const topItems = allItems.slice(0, 8);
     if (topItems.length === 0) {
