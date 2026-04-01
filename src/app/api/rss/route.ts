@@ -34,28 +34,47 @@ const FEED_URLS = [
   }
 ];
 
-async function fetchFeedContent(url: string) {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000);
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "FINGEC-RSS-Fetcher/1.0 (+https://fingecwebsite.vercel.app)",
-        "Accept": "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.5",
-      },
-      next: { revalidate: 3600 }
-    });
+async function fetchFeedContent(url: string, source: string) {
+  const maxAttempts = 3;
 
-    clearTimeout(timeout);
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 14000);
 
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return await response.text();
-  } catch (error) {
-    console.error(`Error fetching ${url}:`, error);
-    return null;
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "FINGEC-RSS-Fetcher/1.0 (+https://fingecwebsite.vercel.app)",
+          "Accept": "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.5",
+        },
+        next: { revalidate: 3600 }
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.text();
+    } catch (error) {
+      const isLastAttempt = attempt === maxAttempts;
+      const prefix = `[RSS:${source}] tentative ${attempt}/${maxAttempts}`;
+
+      if (isLastAttempt) {
+        console.error(`${prefix} - echec final`, error);
+        return null;
+      }
+
+      console.warn(`${prefix} - echec, nouvelle tentative`);
+      await sleep(400 * attempt);
+    }
   }
+
+  return null;
 }
 
 function parseRssContent(xmlString: string, source: string): RSSItem[] {
@@ -105,7 +124,7 @@ function parseRssContent(xmlString: string, source: string): RSSItem[] {
 export async function GET() {
   try {
     const feedPromises = FEED_URLS.map(async (feed) => {
-      const content = await fetchFeedContent(feed.url);
+      const content = await fetchFeedContent(feed.url, feed.source);
       return content ? parseRssContent(content, feed.source) : [];
     });
 
