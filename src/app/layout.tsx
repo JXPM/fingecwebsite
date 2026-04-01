@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import ClientBody from "./ClientBody";
-import TarteaucitronInit from "@/components/TarteaucitronInit";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,13 +34,13 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${inter.className}`}
     >
       <head>
         <link rel="stylesheet" href="/tarteaucitron/css/tarteaucitron.css" />
       </head>
       <body>
-        <TarteaucitronInit />
         <ClientBody>{children}</ClientBody>
       </body>
     </html>

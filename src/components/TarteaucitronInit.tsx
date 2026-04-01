@@ -5,11 +5,18 @@ import { useEffect } from 'react';
 declare global {
   interface Window {
     tarteaucitron: any;
+    __tarteaucitronInitialized?: boolean;
+    __fingecTacServicesRegistered?: boolean;
   }
 }
 
 const TarteaucitronInit = () => {
   useEffect(() => {
+    // Empêche une double initialisation (montage multiple/StrictMode)
+    if (window.__tarteaucitronInitialized) {
+      return;
+    }
+
     // Fonction pour charger les scripts de manière asynchrone
     const loadScript = (src: string): Promise<void> => {
       return new Promise((resolve, reject) => {
@@ -39,6 +46,22 @@ const TarteaucitronInit = () => {
         
         // Vérifier que tarteaucitron est disponible
         if (typeof window.tarteaucitron !== 'undefined') {
+          if (!window.__fingecTacServicesRegistered) {
+            window.tarteaucitron.services.mapbox = {
+              key: "mapbox",
+              type: "other",
+              name: "Carte interactive (Mapbox)",
+              uri: "https://www.mapbox.com/legal/privacy",
+              needConsent: true,
+              cookies: [],
+              js: function () {},
+              fallback: function () {}
+            };
+            window.__fingecTacServicesRegistered = true;
+          }
+
+          window.__tarteaucitronInitialized = true;
+
           // Configuration de Tarteaucitron
           window.tarteaucitron.init({
             privacyUrl: "/politique-confidentialite", // URL de votre politique de confidentialité
@@ -51,18 +74,23 @@ const TarteaucitronInit = () => {
             closePopup: false, // Fermer automatiquement le popup
             showIcon: true, // Afficher l'icône
             iconPosition: "BottomLeft", // Position de l'icône (BottomRight, BottomLeft, TopRight, TopLeft)
+            iconSrc: "/images/cookie-mascot.png", // Icône personnalisée
             adblocker: false, // Détecter les adblockers
             DenyAllCta: true, // Bouton "Tout refuser"
             AcceptAllCta: true, // Bouton "Tout accepter"
             highPrivacy: true, // Mode haute confidentialité
             handleBrowserDNTRequest: false, // Respecter le Do Not Track
+            googleConsentMode: true, // Meilleure compatibilité conformité Google
             removeCredit: false, // Retirer le crédit Tarteaucitron
             moreInfoLink: true, // Lien "Plus d'informations"
             useExternalCss: false, // Utiliser un CSS externe
             useExternalJs: false, // Utiliser un JS externe
             readmoreLink: "", // Lien "En savoir plus"
-            mandatory: true // Services obligatoires
+            mandatory: false, // Ne pas afficher la section "Cookies obligatoires"
+            mandatoryCta: false // Pas de CTA associé aux services obligatoires
           });
+
+          (window.tarteaucitron.job = window.tarteaucitron.job || []).push("mapbox");
 
           // Ouvrir automatiquement le panneau au premier chargement
           setTimeout(() => {
@@ -100,9 +128,11 @@ const TarteaucitronInit = () => {
           
           console.log('Tarteaucitron initialisé avec succès');
         } else {
+          window.__tarteaucitronInitialized = false;
           console.error('Tarteaucitron n\'est pas disponible');
         }
       } catch (error) {
+        window.__tarteaucitronInitialized = false;
         console.error('Erreur lors du chargement de Tarteaucitron:', error);
       }
     };
@@ -123,15 +153,6 @@ const TarteaucitronInit = () => {
     <>
       {/* Conteneur principal pour Tarteaucitron */}
       <div id="tarteaucitronRoot"></div>
-      
-      {/* Conteneur pour les alertes */}
-      <div id="tarteaucitronAlertBig"></div>
-      
-      {/* Conteneur pour l'icône */}
-      <div id="tarteaucitronIcon"></div>
-      
-      {/* Conteneur pour le panneau de configuration */}
-      <div id="tarteaucitronManager"></div>
     </>
   );
 };

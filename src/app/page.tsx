@@ -60,9 +60,9 @@ export default function Home() {
   return (
     <>
       {/* Section Héro avec animation de texte */}
-      <section ref={heroRef} className="relative h-screen max-h-[800px] overflow-hidden">
+      <section ref={heroRef} className="relative h-screen max-h-[800px] overflow-hidden ">
         {/* Image de fond */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 flex-grow pt-40">
           <Image
             src="/images/pagep.avif"
             alt="Équipe FINGEC"
@@ -90,7 +90,7 @@ export default function Home() {
                 }
               }
             }}
-            className="max-w-3xl mx-auto text-center space-y-6 text-white"
+            className="max-w-3xl mx-auto mt-16 md:mt-24 text-center space-y-6 text-white"
           >
             <motion.h1 
               variants={{

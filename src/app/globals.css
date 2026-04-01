@@ -108,3 +108,116 @@
     color: hsl(var(--complementary));
   }
 }
+
+/* Theme cookies personnalise (Tarteaucitron) */
+#tarteaucitronRoot #tarteaucitronAlertBig {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+  box-sizing: border-box;
+  left: 50%;
+  max-width: 720px;
+  padding: 28px 20px 18px;
+  position: fixed;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 24px);
+}
+
+#tarteaucitronRoot #tarteaucitronAlertBig::before {
+  background-image: url("/images/cookie-mascot.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: "";
+  display: block;
+  height: 170px;
+  margin: 0 auto 8px;
+  width: 170px;
+}
+
+#tarteaucitronRoot #tarteaucitronDisclaimerAlert,
+#tarteaucitronRoot #tarteaucitronDisclaimerAlert strong,
+#tarteaucitronRoot #tarteaucitronPrivacyUrl {
+  color: #0f172a;
+}
+
+#tarteaucitronRoot #tarteaucitronDisclaimerAlert {
+  display: block;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  max-height: none;
+  padding: 0;
+}
+
+/* RGPD: meme poids visuel pour accepter/refuser/personnaliser */
+#tarteaucitronAlertBig #tarteaucitronPersonalize2,
+#tarteaucitronAlertBig #tarteaucitronAllAllowed2,
+#tarteaucitronAlertBig #tarteaucitronAllDenied2,
+#tarteaucitronRoot .tarteaucitronCTAButton,
+#tarteaucitronRoot .tarteaucitronAllow,
+#tarteaucitronRoot .tarteaucitronDeny {
+  background: #f8fafc !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 999px;
+  color: #111827 !important;
+  font-weight: 600;
+  min-height: 42px;
+  padding: 10px 16px;
+}
+
+#tarteaucitronAlertBig #tarteaucitronAllDenied2 {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+#tarteaucitronAlertBig #tarteaucitronCloseAlert {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  color: #1e293b;
+  font-weight: 500;
+  min-height: 42px;
+  padding: 10px 16px;
+}
+
+#tarteaucitronAlertBig #tarteaucitronPrivacyUrl {
+  background: transparent;
+  color: #374151 !important;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+#tarteaucitronAlertBig #tarteaucitronPersonalize2:hover,
+#tarteaucitronAlertBig #tarteaucitronAllAllowed2:hover,
+#tarteaucitronAlertBig #tarteaucitronAllDenied2:hover {
+  filter: brightness(0.95);
+}
+
+#tarteaucitronRoot button:focus-visible,
+#tarteaucitronRoot a:focus-visible {
+  outline: 2px solid #9ca3af;
+  outline-offset: 2px;
+}
+
+#tarteaucitronIcon #tarteaucitronManager img {
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  height: 132px;
+  object-fit: contain;
+  width: 132px;
+}
+
+@media (max-width: 640px) {
+  #tarteaucitronRoot #tarteaucitronAlertBig {
+    padding: 20px 12px 14px;
+  }
+
+  #tarteaucitronRoot #tarteaucitronAlertBig::before {
+    height: 124px;
+    width: 124px;
+  }
+}

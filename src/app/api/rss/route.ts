@@ -1,9 +1,8 @@
 // app/api/rss/route.ts
-import { NextResponse } from 'next/server';
 
-export const dynamic = "force-dynamic";
+export const dynamic = "auto";
 export const revalidate = 3600;
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 interface RSSItem {
   id: string;
@@ -38,10 +37,14 @@ const FEED_URLS = [
 async function fetchFeedContent(url: string) {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
+    const timeout = setTimeout(() => controller.abort(), 12000);
 
     const response = await fetch(url, {
       signal: controller.signal,
+      headers: {
+        "User-Agent": "FINGEC-RSS-Fetcher/1.0 (+https://fingecwebsite.vercel.app)",
+        "Accept": "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.5",
+      },
       next: { revalidate: 3600 }
     });
 
@@ -66,17 +69,31 @@ function parseRssContent(xmlString: string, source: string): RSSItem[] {
     const linkMatch = /<link>([\s\S]*?)<\/link>/.exec(itemContent);
     const pubDateMatch = /<pubDate>([\s\S]*?)<\/pubDate>/.exec(itemContent);
     const descMatch = /<description>([\s\S]*?)<\/description>/.exec(itemContent);
+    const descriptionText = descMatch?.[1]?.replace(/<[^>]*>?/gm, '') || '';
+
+    // BOFiP n'expose pas toujours pubDate: on tente de lire "publie le jj/mm/aaaa" dans la description.
+    let normalizedPubDate = pubDateMatch?.[1]?.trim();
+    if (!normalizedPubDate) {
+      const frenchDateMatch = /publi[ée]\s+le\s+(\d{2})\/(\d{2})\/(\d{4})/i.exec(descriptionText);
+      if (frenchDateMatch) {
+        const [, day, month, year] = frenchDateMatch;
+        normalizedPubDate = `${year}-${month}-${day}T12:00:00.000Z`;
+      }
+    }
+    if (!normalizedPubDate) {
+      normalizedPubDate = '1970-01-01T00:00:00.000Z';
+    }
 
     items.push({
-      id: `rss-${items.length}`,
+      id: `rss-${source.toLowerCase()}-${items.length}`,
       title: titleMatch?.[1]?.trim() || 'Sans titre',
       link: linkMatch?.[1]?.trim() || '#',
-      pubDate: pubDateMatch?.[1]?.trim() || new Date().toISOString(),
-      contentSnippet: (descMatch?.[1]?.replace(/<[^>]*>?/gm, '')?.substring(0, 200) + '...'),
+      pubDate: normalizedPubDate,
+      contentSnippet: (descriptionText.substring(0, 200) + '...'),
       source,
       author: source, // Utilisez source comme auteur par défaut
-      date: new Date(pubDateMatch?.[1] || Date.now()).toLocaleDateString('fr-FR'),
-      excerpt: (descMatch?.[1]?.replace(/<[^>]*>?/gm, '')?.substring(0, 200) + '...'),
+      date: new Date(normalizedPubDate).toLocaleDateString('fr-FR'),
+      excerpt: (descriptionText.substring(0, 200) + '...'),
       tags: ['Fiscal', 'Officiel'],
       resources: [] // Tableau vide par défaut
     });
@@ -93,11 +110,52 @@ export async function GET() {
     });
 
     const results = await Promise.all(feedPromises);
-    const allItems = results.flat().sort((a, b) => 
-      new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
-    );
+    const allItems = results
+      .flat()
+      .sort((a, b) => {
+        const dateDiff = new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime();
+        if (dateDiff !== 0) return dateDiff;
+        return `${a.source}-${a.title}`.localeCompare(`${b.source}-${b.title}`);
+      });
 
-    return new Response(JSON.stringify(allItems.slice(0, 8)), {
+    const topItems = allItems.slice(0, 8);
+    if (topItems.length === 0) {
+      return new Response(JSON.stringify([
+        {
+          id: 'fallback-bofip',
+          title: 'Actualites BOFiP',
+          link: 'https://bofip.impots.gouv.fr/bofip',
+          pubDate: new Date().toISOString(),
+          contentSnippet: 'Consultez les dernieres actualites fiscales officielles publiees par la DGFiP.',
+          source: 'BOFiP',
+          author: 'BOFiP',
+          date: new Date().toLocaleDateString('fr-FR'),
+          excerpt: 'Consultez les dernieres actualites fiscales officielles publiees par la DGFiP.',
+          tags: ['Fiscal', 'Officiel'],
+          resources: []
+        },
+        {
+          id: 'fallback-boss',
+          title: 'Actualites BOSS',
+          link: 'https://boss.gouv.fr/portail/accueil/actualites-boss-et-rescrits.html',
+          pubDate: new Date().toISOString(),
+          contentSnippet: 'Consultez les dernieres mises a jour sociales et paie sur le Bulletin Officiel de la Securite Sociale.',
+          source: 'BOSS',
+          author: 'BOSS',
+          date: new Date().toLocaleDateString('fr-FR'),
+          excerpt: 'Consultez les dernieres mises a jour sociales et paie sur le Bulletin Officiel de la Securite Sociale.',
+          tags: ['Social', 'Officiel'],
+          resources: []
+        }
+      ]), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=1800'
+        }
+      });
+    }
+
+    return new Response(JSON.stringify(topItems), {
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=1800'

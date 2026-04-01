@@ -28,16 +28,14 @@ const Navigation = () => {
     <NavigationMenu className="justify-center">
       <NavigationMenuList className="justify-center">
         <NavigationMenuItem>
-          <Link href="/" legacyBehavior passHref>
-            <NavigationMenuLink
-              className={cn(
-                navigationMenuTriggerStyle(),
-                isActive("/") ? "bg-muted" : ""
-              )}
-            >
-              Accueil
-            </NavigationMenuLink>
-          </Link>
+          <NavigationMenuLink asChild
+            className={cn(
+              navigationMenuTriggerStyle(),
+              isActive("/") ? "bg-muted" : ""
+            )}
+          >
+            <Link href="/">Accueil</Link>
+          </NavigationMenuLink>
         </NavigationMenuItem>
 
         <NavigationMenuItem>
@@ -72,55 +70,47 @@ const Navigation = () => {
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <Link href="/nos-actualites/base-de-documentation" legacyBehavior passHref>
-            <NavigationMenuLink
-              className={cn(
-                navigationMenuTriggerStyle(),
-                isActive("/nos-actualites/base-de-documentation") ? "bg-muted" : ""
-              )}
-            >
-              Actualités fiscales & sociales
-            </NavigationMenuLink>
-          </Link>
+          <NavigationMenuLink asChild
+            className={cn(
+              navigationMenuTriggerStyle(),
+              isActive("/nos-actualites/base-de-documentation") ? "bg-muted" : ""
+            )}
+          >
+            <Link href="/nos-actualites/base-de-documentation">Actualités fiscales & sociales</Link>
+          </NavigationMenuLink>
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <Link href="/nous-rejoindre" legacyBehavior passHref>
-            <NavigationMenuLink
-              className={cn(
-                navigationMenuTriggerStyle(),
-                isActive("/nous-rejoindre") ? "bg-muted" : ""
-              )}
-            >
-              Nous rejoindre
-            </NavigationMenuLink>
-          </Link>
+          <NavigationMenuLink asChild
+            className={cn(
+              navigationMenuTriggerStyle(),
+              isActive("/nous-rejoindre") ? "bg-muted" : ""
+            )}
+          >
+            <Link href="/nous-rejoindre">Nous rejoindre</Link>
+          </NavigationMenuLink>
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <Link href="/nous-contacter" legacyBehavior passHref>
-            <NavigationMenuLink
-              className={cn(
-                navigationMenuTriggerStyle(),
-                isActive("/nous-contacter") ? "bg-muted" : ""
-              )}
-            >
-              Nous contacter
-            </NavigationMenuLink>
-          </Link>
+          <NavigationMenuLink asChild
+            className={cn(
+              navigationMenuTriggerStyle(),
+              isActive("/nous-contacter") ? "bg-muted" : ""
+            )}
+          >
+            <Link href="/nous-contacter">Nous contacter</Link>
+          </NavigationMenuLink>
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <Link href="/outils-liens" legacyBehavior passHref>
-            <NavigationMenuLink
-              className={cn(
-                navigationMenuTriggerStyle(),
-                isActive("/outils-liens") ? "bg-muted" : ""
-              )}
-            >
-              Outils & Liens
-            </NavigationMenuLink>
-          </Link>
+          <NavigationMenuLink asChild
+            className={cn(
+              navigationMenuTriggerStyle(),
+              isActive("/outils-liens") ? "bg-muted" : ""
+            )}
+          >
+            <Link href="/outils-liens">Outils & Liens</Link>
+          </NavigationMenuLink>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>

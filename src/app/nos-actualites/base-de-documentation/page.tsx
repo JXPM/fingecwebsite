@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   CalendarDays, 
-  User, 
-  Tag, 
+  UserRound, 
+  Newspaper, 
   ArrowLeft, 
   FileText, 
   Download, 
   Filter,
-  Briefcase,
+  BriefcaseBusiness,
   Building2,
   Users,
   Landmark,
@@ -71,7 +71,7 @@ export default function BaseDocumentation() {
         const data = await res.json();
         const categorizedData = data.map((article: RSSArticle) => ({
           ...article,
-          category: getRandomCategory(article.title)
+          category: getCategory(article)
         }));
         setArticles(categorizedData);
       } catch (err) {
@@ -84,25 +84,28 @@ export default function BaseDocumentation() {
     fetchArticles();
   }, []);
 
-  const getRandomCategory = (title: string): string => {
-    if (title.includes('TVA') || title.includes('BIC')) return 'PROFESSIONNEL';
-    if (title.includes('taxes d\'urbanisme')) return 'COLLECTIVITE';
-    if (title.includes('cession de droits sociaux')) return 'PARTICULIER';
-    if (title.includes('Solidarité fiscale')) return 'PARTICULIER';
-    if (title.includes('BOSS')) return 'SOCIAL';
-    if (title.includes('BoFip')) return 'FISCAL';
-    
-    const categories = ['PROFESSIONNEL', 'PARTICULIER', 'COLLECTIVITE', 'SOCIAL', 'FISCAL'];
-    return categories[Math.floor(Math.random() * categories.length)];
+  const getCategory = (article: RSSArticle): ArticleCategory => {
+    const title = article.title.toLowerCase();
+    const source = article.source.toUpperCase();
+    const titleRaw = article.title;
+
+    const hasWord = (pattern: RegExp) => pattern.test(titleRaw);
+
+    if (title.includes('urssaf') || title.includes('paie') || title.includes('cotisation')) return 'SOCIAL';
+    if (hasWord(/\bTVA\b/i) || hasWord(/\bBIC\b/i) || hasWord(/\bIS\b/i) || title.includes('fiscal')) return 'FISCAL';
+    if (title.includes('collectivite') || title.includes('urbanisme')) return 'COLLECTIVITE';
+    if (title.includes('particulier') || title.includes('droits sociaux')) return 'PARTICULIER';
+    if (title.includes('entreprise') || title.includes('professionnel') || title.includes('societe')) return 'PROFESSIONNEL';
+
+    if (source.includes('BOSS')) return 'SOCIAL';
+    if (source.includes('BOFIP')) return 'FISCAL';
+
+    return 'PROFESSIONNEL';
   };
 
-  const filteredArticles = selectedCategory === 'TOUS' 
-    ? articles 
-    : articles.filter(article => 
-        article.category.includes(selectedCategory) || 
-        (selectedCategory === 'SOCIAL' && article.source === 'BOSS') ||
-        (selectedCategory === 'FISCAL' && article.source === 'BoFip')
-      );
+  const filteredArticles = selectedCategory === 'TOUS'
+    ? articles
+    : articles.filter((article) => article.category === selectedCategory);
 
   const groupedArticles = filteredArticles.reduce((acc, article) => {
     const category = article.category;
@@ -366,7 +369,7 @@ export default function BaseDocumentation() {
                     onClick={() => setSelectedCategory('TOUS')}
                     className="flex items-center gap-2"
                   >
-                    <Tag className="h-4 w-4" />
+                    <Newspaper className="h-4 w-4 text-slate-600" />
                     Tous
                   </Button>
                   <Button
@@ -374,7 +377,7 @@ export default function BaseDocumentation() {
                     onClick={() => setSelectedCategory('FISCAL')}
                     className="flex items-center gap-2"
                   >
-                    <Landmark className="h-4 w-4" />
+                    <Landmark className="h-4 w-4 text-primary" />
                     Fiscal
                   </Button>
                   <Button
@@ -382,7 +385,7 @@ export default function BaseDocumentation() {
                     onClick={() => setSelectedCategory('SOCIAL')}
                     className="flex items-center gap-2"
                   >
-                    <Users className="h-4 w-4" />
+                    <Users className="h-4 w-4 text-complementary" />
                     Social
                   </Button>
                   <Button
@@ -390,7 +393,7 @@ export default function BaseDocumentation() {
                     onClick={() => setSelectedCategory('PROFESSIONNEL')}
                     className="flex items-center gap-2"
                   >
-                    <Briefcase className="h-4 w-4" />
+                    <BriefcaseBusiness className="h-4 w-4 text-primary" />
                     Professionnels
                   </Button>
                   <Button
@@ -398,7 +401,7 @@ export default function BaseDocumentation() {
                     onClick={() => setSelectedCategory('PARTICULIER')}
                     className="flex items-center gap-2"
                   >
-                    <User className="h-4 w-4" />
+                    <UserRound className="h-4 w-4 text-slate-600" />
                     Particuliers
                   </Button>
                   <Button
@@ -406,7 +409,7 @@ export default function BaseDocumentation() {
                     onClick={() => setSelectedCategory('COLLECTIVITE')}
                     className="flex items-center gap-2"
                   >
-                    <Building2 className="h-4 w-4" />
+                    <Building2 className="h-4 w-4 text-complementary" />
                     Collectivités
                   </Button>
                 </div>
@@ -423,16 +426,23 @@ export default function BaseDocumentation() {
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
+          ) : Object.keys(groupedArticles).length === 0 ? (
+            <div className="text-center py-16">
+              <Info className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+              <p className="text-muted-foreground">
+                Aucune actualite n'est disponible pour le moment. Veuillez reessayer un peu plus tard.
+              </p>
+            </div>
           ) : (
             <div className="space-y-12">
               {Object.entries(groupedArticles).map(([category, categoryArticles]) => (
                 <div key={category} className="space-y-6">
                   <h2 className="text-2xl font-bold border-b pb-2 flex items-center gap-2">
-                    {category === 'PROFESSIONNEL' && <Briefcase className="h-5 w-5 text-blue-600" />}
-                    {category === 'PARTICULIER' && <User className="h-5 w-5 text-green-600" />}
-                    {category === 'COLLECTIVITE' && <Building2 className="h-5 w-5 text-purple-600" />}
-                    {category === 'SOCIAL' && <Users className="h-5 w-5 text-orange-600" />}
-                    {category === 'FISCAL' && <Landmark className="h-5 w-5 text-red-600" />}
+                    {category === 'PROFESSIONNEL' && <BriefcaseBusiness className="h-5 w-5 text-primary" />}
+                    {category === 'PARTICULIER' && <UserRound className="h-5 w-5 text-slate-700" />}
+                    {category === 'COLLECTIVITE' && <Building2 className="h-5 w-5 text-complementary" />}
+                    {category === 'SOCIAL' && <Users className="h-5 w-5 text-complementary" />}
+                    {category === 'FISCAL' && <Landmark className="h-5 w-5 text-primary" />}
                     À LA UNE {category}
                   </h2>
                   
