@@ -11,22 +11,31 @@ concurrency:
   group: deploy-vps
   cancel-in-progress: false
 
+env:
+  VPS_HOST: ${{ secrets.VPS_HOST }}
+  VPS_USER: ${{ secrets.VPS_USER }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Preparer la cle SSH et known_hosts
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ci
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ci
           chmod 600 ~/.ssh/id_ci
-          echo "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
+          echo "Empreinte de la cle CI :"
+          ssh-keygen -l -f ~/.ssh/id_ci
 
       - name: Deployer sur le VPS
         run: |
-          ssh -i ~/.ssh/id_ci -o ConnectTimeout=20 \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+          ssh -i ~/.ssh/id_ci -o IdentitiesOnly=yes -o ConnectTimeout=20 \
+            "$VPS_USER@$VPS_HOST" \
             'set -e; cd /opt/fingec-site \
               && git fetch --prune origin \
               && git reset --hard origin/main \
@@ -35,8 +44,8 @@ jobs:
 
       - name: Verifier que le site repond
         run: |
-          ssh -i ~/.ssh/id_ci -o ConnectTimeout=20 \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+          ssh -i ~/.ssh/id_ci -o IdentitiesOnly=yes -o ConnectTimeout=20 \
+            "$VPS_USER@$VPS_HOST" \
             'docker run --rm --network pharmaclick_web curlimages/curl:latest \
               -s -o /dev/null -w "fingec-site: HTTP %{http_code}\n" \
               --max-time 15 http://fingec-site:3000'
