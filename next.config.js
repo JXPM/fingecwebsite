@@ -2,6 +2,8 @@ const path = require("path");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Build autonome pour Docker (.next/standalone) : image minimale, serveur Node embarque
+  output: "standalone",
   //output: 'export',
   // distDir: 'out',
   images: {

@@ -1,0 +1,37 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        # Variables publiques injectees au build (cf. .env)
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL}
+        NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN}
+    image: fingec-web
+    container_name: fingec-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+
+  # ----------------------------------------------------------------------
+  # Base de donnees MySQL : decommenter quand la newsletter passera en prod.
+  # Pensez aussi a regler DB_HOST=db dans .env et a importer le schema :
+  #   docker compose exec -T db mysql -u fingec -p fingec < database/newsletter_schema.sql
+  # ----------------------------------------------------------------------
+  # db:
+  #   image: mysql:8
+  #   container_name: fingec-db
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_DATABASE: ${DB_NAME}
+  #     MYSQL_USER: ${DB_USER}
+  #     MYSQL_PASSWORD: ${DB_PASSWORD}
+  #     MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+  #   volumes:
+  #     - db_data:/var/lib/mysql
+  #   ports:
+  #     - "127.0.0.1:3306:3306"
+
+# volumes:
+#   db_data:
