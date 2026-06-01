@@ -6,22 +6,26 @@ services:
         # Variables publiques injectees au build (cf. .env)
         NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL}
         NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN}
-    image: fingec-web
-    container_name: fingec-web
+    image: fingec-site:latest
+    container_name: fingec-site
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    # Pas de port publie : le Caddy existant (pharmaclick-caddy) joint ce
+    # conteneur par son nom via le reseau partage, et gere 80/443 + SSL.
+    expose:
+      - "3000"
     env_file:
       - .env
+    networks:
+      - web
 
   # ----------------------------------------------------------------------
   # Base de donnees MySQL : decommenter quand la newsletter passera en prod.
   # Pensez aussi a regler DB_HOST=db dans .env et a importer le schema :
-  #   docker compose exec -T db mysql -u fingec -p fingec < database/newsletter_schema.sql
+  #   docker compose exec -T db mysql -u root -p < database/newsletter_schema.sql
   # ----------------------------------------------------------------------
   # db:
   #   image: mysql:8
-  #   container_name: fingec-db
+  #   container_name: fingec-site-db
   #   restart: unless-stopped
   #   environment:
   #     MYSQL_DATABASE: ${DB_NAME}
@@ -30,8 +34,15 @@ services:
   #     MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
   #   volumes:
   #     - db_data:/var/lib/mysql
-  #   ports:
-  #     - "127.0.0.1:3306:3306"
+  #   networks:
+  #     - web
+
+# Reseau Docker partage, cree par le projet pharmaclick. Le Caddy qui y tourne
+# route app.fingec.fr et pharmaclick ; on s'y greffe pour exposer fingec.fr.
+networks:
+  web:
+    external: true
+    name: pharmaclick_web
 
 # volumes:
 #   db_data:
